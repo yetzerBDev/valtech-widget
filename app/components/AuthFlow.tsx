@@ -419,7 +419,11 @@ export default function AuthFlow() {
       const e = normEstatus(s);
       return e === "standby" || e.startsWith("stand by");
     };
-    const visibles = listado.filter(esSuyo);
+    const esCerrado = (s: string | null) => {
+      const e = normEstatus(s);
+      return e === "cerrado" || e === "cerrada";
+    };
+    const visibles = listado.filter((a) => esSuyo(a) && !esCerrado(a.estatus));
     const abiertos = visibles.filter((a) => esAbierto(a.estatus));
     const conVisita = visibles.filter((a) => esStandBy(a.estatus));
     const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
@@ -437,15 +441,17 @@ export default function AuthFlow() {
             priority
           />
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setShowSettings(true)}
-              aria-label="Configuración de sincronización"
-              title="Configuración de sincronización"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <HugeiconsIcon icon={Settings01Icon} size={13} strokeWidth={2} />
-            </button>
+            {cargo === "encargado" && (
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                aria-label="Configuración de sincronización"
+                title="Configuración de sincronización"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <HugeiconsIcon icon={Settings01Icon} size={13} strokeWidth={2} />
+              </button>
+            )}
             {update && (
               <button
                 type="button"

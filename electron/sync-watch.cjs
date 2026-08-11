@@ -20,10 +20,13 @@ function normalizeHeader(text) {
 
 const NORM_MAP = {
   "fecha banco": "fecha_banco",
+  "fecha que solicita el banco": "fecha_banco",
   recibe: "recibe",
+  "fecha que recibe la solicitud digitador": "recibe",
   tipo: "tipo",
   "area de solicitud": "area_solicitud",
   "estatus de peticion": "estatus",
+  "estatus peticion": "estatus",
   codigo: "codigo",
   "no avaluo": "no_avaluo",
   "perito de campo": "perito",
@@ -45,6 +48,7 @@ const NORM_MAP = {
   "encuesta a cliente de tiempo estimado de recibida solicitud": "encuesta",
   "fecha envio solicitud a perito": "fecha_envio_perito",
   "fecha envio visita de campo": "fecha_envio_visita",
+  "fecha que perito envia visita de campo": "fecha_envio_visita",
 };
 
 function excelSerialToDate(serial) {
