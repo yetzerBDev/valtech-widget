@@ -243,8 +243,7 @@ export default function AuthFlow() {
             Valtech
           </h1>
           <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-relaxed text-zinc-600 lg:mx-0">
-            Valtech es una plataforma de gestión de tasaciones y control de proyectos inmobiliarios diseñada
-            para profesionales en Honduras.
+            Es una plataforma privada para el control de solicitudes de avalúos.
           </p>
         </section>
 
