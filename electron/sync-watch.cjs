@@ -139,7 +139,23 @@ async function syncOnce(client, filePath) {
     });
     if (error) throw new Error(error.message);
   }
-  return records.length;
+
+  const keep = new Set(records.map((r) => r.no_avaluo).filter(Boolean));
+  const { data: existing, error: readErr } = await client
+    .from("avaluos")
+    .select("no_avaluo");
+  if (readErr) throw new Error(readErr.message);
+  const toDelete = (existing ?? [])
+    .map((r) => r.no_avaluo)
+    .filter((id) => id != null && !keep.has(id));
+  const DEL_BATCH = 90;
+  for (let i = 0; i < toDelete.length; i += DEL_BATCH) {
+    const chunk = toDelete.slice(i, i + DEL_BATCH);
+    const { error } = await client.from("avaluos").delete().in("no_avaluo", chunk);
+    if (error) throw new Error(error.message);
+  }
+
+  return { inserted: records.length, deleted: toDelete.length };
 }
 
 function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
@@ -178,8 +194,10 @@ function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
     lastMtime = mtime;
     syncing = true;
     try {
-      const n = await syncOnce(client, excelPath);
-      log(`[sync] ${new Date().toISOString()} sincronizado: ${n} avaluos`);
+      const { inserted, deleted } = await syncOnce(client, excelPath);
+      log(
+        `[sync] ${new Date().toISOString()} sincronizado: ${inserted} avaluos, ${deleted} eliminados`
+      );
       lastOk = true;
     } catch (err) {
       log(`[sync] error: ${err.message}`);

@@ -684,9 +684,6 @@ export default function AuthFlow() {
 
         <div className="mt-3 shrink-0">
           <div className="rounded-xl border border-outline-variant/60 bg-surface p-3">
-            <p className="text-[12px] leading-relaxed text-on-surface-variant">
-              Este widget se actualiza solo: minimízalo cuando quieras.
-            </p>
             {(perfil?.nombre || perfil?.cargo) && (
               <p className="mt-1 flex items-center gap-1.5 truncate">
                 {perfil?.cargo && (
@@ -740,7 +737,9 @@ export default function AuthFlow() {
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-on-surface-variant">
                 Pega la ruta del archivo Excel maestro que trabaja el encargado. Al guardar, este
-                widget lo vigilará y subirá los cambios automáticamente.
+                widget lo vigilará y subirá los cambios automáticamente. La sincronización{" "}
+                <span className="font-semibold text-on-surface">reemplaza</span> la base: se borran
+                los avalúos que ya no estén en el Excel.
               </p>
               <label className="mt-3 block text-[10px] font-bold uppercase tracking-wide text-on-surface-variant">
                 Ruta del Excel
