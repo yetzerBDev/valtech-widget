@@ -144,8 +144,21 @@ if (!gotTheLock) {
 
     ipcMain.on("window:minimize", () => mainWindow?.minimize());
     ipcMain.handle("window:get-size", () => mainWindow?.getSize());
+    ipcMain.handle("app:get-version", () => app.getVersion());
 
     createWindow();
+
+    if (app.isPackaged) {
+      const { autoUpdater } = require("electron-updater");
+      autoUpdater.autoDownload = true;
+      autoUpdater.autoInstallOnAppQuit = true;
+      autoUpdater.on("error", (error) => {
+        console.error("[autoUpdater]", error?.message ?? error);
+      });
+      autoUpdater.checkForUpdates().catch((error) => {
+        console.error("[autoUpdater]", error?.message ?? error);
+      });
+    }
 
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();

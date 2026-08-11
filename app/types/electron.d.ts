@@ -5,6 +5,7 @@ declare global {
     electronAPI?: {
       minimize: () => void;
       getSize: () => Promise<[number, number]>;
+      getVersion: () => Promise<string>;
     };
   }
 }

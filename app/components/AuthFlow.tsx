@@ -7,9 +7,12 @@ import type { User } from "@supabase/supabase-js";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading02Icon,
-  MonitorDotIcon,
   Logout01Icon,
   UserCircleIcon,
+  MapPinIcon,
+  MapPinCheckIcon,
+  CloudOffIcon,
+  CloudCheckIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
@@ -36,6 +39,10 @@ export default function AuthFlow() {
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [widgetTab, setWidgetTab] = useState<"sin" | "con">("sin");
+  const [online, setOnline] = useState(true);
+  const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
+  const [showUpdateCard, setShowUpdateCard] = useState(false);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -57,6 +64,27 @@ export default function AuthFlow() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const updateOnline = () => setOnline(navigator.onLine);
+    updateOnline();
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOnline);
+    return () => {
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isWidget || !window.electronAPI?.getVersion) return;
+    window.electronAPI.getVersion().then((v) => {
+      setWidgetVersion(v);
+      if (window.localStorage.getItem("valtech-widget-version") !== v) {
+        setShowUpdateCard(true);
+      }
+    });
+  }, [isWidget]);
 
   useEffect(() => {
     if (!supabase || !user) return;
@@ -127,44 +155,119 @@ export default function AuthFlow() {
 
   if (isWidget) {
     return (
-      <main className="flex min-h-[100dvh] flex-col bg-background px-5 pb-5 pt-7 text-on-background">
+      <main className="flex min-h-[100dvh] flex-col bg-background px-4 pb-4 pt-7 text-on-background">
         <header className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Image
-              src="/LOGO VALTECH.png"
-              alt="Valtech"
-              width={30}
-              height={30}
-              className="h-[30px] w-[30px] object-contain"
-              priority
-            />
-            <span className="text-[15px] font-bold tracking-tight text-on-surface">Valtech</span>
-          </div>
-          <span className="flex items-center gap-1.5 rounded-full border border-outline-variant bg-surface-container-high px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant">
-            <span className="relative flex h-1.5 w-1.5">
+          <Image
+            src="/LOGO VALTECH.png"
+            alt="Valtech"
+            width={22}
+            height={22}
+            className="h-[22px] w-[22px] object-contain"
+            priority
+          />
+          {online ? (
+            <span className="relative flex h-2 w-2" title="Activo">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Widget activo
-          </span>
+          ) : (
+            <span
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
+              title="Sin conexión"
+            >
+              <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} />
+            </span>
+          )}
         </header>
 
-        <section className="mt-auto">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-high text-primary">
-            <HugeiconsIcon icon={MonitorDotIcon} size={26} strokeWidth={1.75} />
+        {showUpdateCard && (
+          <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary/5 p-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+              <HugeiconsIcon icon={CloudCheckIcon} size={13} strokeWidth={2} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-on-surface">Widget actualizado</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-on-surface-variant">
+                Nueva versión instalada{widgetVersion ? ` (v${widgetVersion})` : ""}.
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Cerrar aviso"
+              onClick={() => {
+                setShowUpdateCard(false);
+                if (widgetVersion) {
+                  window.localStorage.setItem("valtech-widget-version", widgetVersion);
+                }
+              }}
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
           </div>
-          <h1 className="mt-4 text-[22px] font-bold leading-[1.2] tracking-tight text-on-surface">
-            En ejecución
+        )}
+
+        <section className="mt-4">
+          <h1 className="text-[17px] font-bold leading-[1.2] tracking-tight text-on-surface">
+            Solicitudes de avalúo
           </h1>
-          <p className="mt-1.5 max-w-[30ch] text-[14px] leading-relaxed text-on-surface-variant">
-            Este widget se abre automáticamente al encender el PC y solo puede minimizarse, nunca cerrarse.
+
+          <div className="mt-3 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={widgetTab === "sin"}
+              onClick={() => setWidgetTab("sin")}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                widgetTab === "sin"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              <HugeiconsIcon icon={MapPinIcon} size={13} strokeWidth={2} />
+              Sin visita
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={widgetTab === "con"}
+              onClick={() => setWidgetTab("con")}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                widgetTab === "con"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
+              Con visita
+            </button>
+          </div>
+        </section>
+
+        <section className="mt-auto flex flex-col items-center text-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+            <HugeiconsIcon
+              icon={widgetTab === "sin" ? MapPinIcon : MapPinCheckIcon}
+              size={20}
+              strokeWidth={1.5}
+            />
+          </div>
+          <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
+            {widgetTab === "sin" ? "Sin visitas pendientes" : "Sin avalúos con visita"}
+          </h2>
+          <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
+            {widgetTab === "sin"
+              ? "Las solicitudes pendientes de visita aparecerán aquí en tiempo real."
+              : "Los avalúos ya visitados aparecerán aquí en tiempo real."}
           </p>
         </section>
 
         <div className="mt-auto">
-          <div className="rounded-2xl border border-outline-variant/60 bg-surface p-4">
-            <p className="text-[13px] leading-relaxed text-on-surface-variant">
-              Próximamente verás aquí tus solicitudes de avalúo en tiempo real.
+          <div className="rounded-xl border border-outline-variant/60 bg-surface p-3">
+            <p className="text-[12px] leading-relaxed text-on-surface-variant">
+              Este widget se actualiza solo: minimízalo cuando quieras.
             </p>
           </div>
         </div>
