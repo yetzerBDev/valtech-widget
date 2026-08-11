@@ -110,7 +110,7 @@ export default function AuthFlow() {
     const id = window.setTimeout(() => {
       const widget = Boolean(window.electronAPI);
       setIsWidget(widget);
-      if (!widget && supabase) {
+      if (supabase) {
         supabase.auth.getSession().then(({ data }) => {
           setUser(data.session?.user ?? null);
         });
