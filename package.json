@@ -39,6 +39,7 @@
   "build": {
     "appId": "com.widget.avaluo",
     "productName": "Widget Avalúo",
+    "artifactName": "widget-avaluo-setup-${version}.${ext}",
     "files": [
       "out/**",
       "electron/**",
