@@ -60,14 +60,23 @@ export default function AuthFlow() {
   useEffect(() => {
     if (!supabase || !user) return;
     let cancelled = false;
-    supabase
-      .from("perfiles")
-      .select("nombre, cargo")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setPerfil(data ?? null);
-      });
+    const nombre =
+      typeof user.user_metadata?.full_name === "string"
+        ? user.user_metadata.full_name
+        : (user.email ?? user.id);
+    (async () => {
+      const { error } = await supabase.from("perfiles").upsert(
+        { id: user.id, email: user.email ?? "", nombre },
+        { onConflict: "id" }
+      );
+      if (cancelled || error) return;
+      const { data } = await supabase
+        .from("perfiles")
+        .select("nombre, cargo")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled) setPerfil(data ?? null);
+    })();
     return () => {
       cancelled = true;
     };
