@@ -445,15 +445,24 @@ export default function AuthFlow() {
       return nombreNorm !== "" && normalizeNombre(col ?? "") === nombreNorm;
     };
     const normEstatus = (s: string | null) => (s ?? "").trim().toLowerCase();
-    const esCerrado = (s: string | null) => {
+    const esOculto = (s: string | null) => {
       const e = normEstatus(s);
-      return e === "cerrado" || e === "cerrada";
+      if (!e) return true;
+      return (
+        e === "cerrado" ||
+        e === "cerrada" ||
+        e === "cotizado" ||
+        e === "cotizada" ||
+        e === "devuelto" ||
+        e === "devuelta" ||
+        e === "0"
+      );
     };
     const tieneVisita = (a: Avaluo) => {
       const v = a.fecha_envio_visita;
       return v != null && v.trim() !== "";
     };
-    const visibles = listado.filter((a) => esSuyo(a) && !esCerrado(a.estatus));
+    const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus));
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
     const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
