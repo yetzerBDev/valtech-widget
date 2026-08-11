@@ -437,17 +437,15 @@ export default function AuthFlow() {
             priority
           />
           <div className="flex items-center gap-1.5">
-            {cargo === "encargado" && (
-              <button
-                type="button"
-                onClick={() => setShowSettings(true)}
-                aria-label="Configuración de sincronización"
-                title="Configuración de sincronización"
-                className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <HugeiconsIcon icon={Settings01Icon} size={13} strokeWidth={2} />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowSettings(true)}
+              aria-label="Configuración de sincronización"
+              title="Configuración de sincronización"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <HugeiconsIcon icon={Settings01Icon} size={13} strokeWidth={2} />
+            </button>
             {update && (
               <button
                 type="button"
