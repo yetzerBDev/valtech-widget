@@ -40,4 +40,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.removeListener("update:error", listener);
   },
   quitAndInstall: () => ipcRenderer.send("update:quit-and-install"),
+  getConfig: () => ipcRenderer.invoke("config:get"),
+  setConfig: (payload) => ipcRenderer.invoke("config:set", payload),
+  pickExcel: () => ipcRenderer.invoke("dialog:pick-excel"),
+  onSyncStatus: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("sync:status", listener);
+    return () => ipcRenderer.removeListener("sync:status", listener);
+  },
 });

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const http = require("http");
@@ -229,31 +229,85 @@ if (!gotTheLock) {
     ipcMain.handle("window:get-size", () => mainWindow?.getSize());
     ipcMain.handle("app:get-version", () => app.getVersion());
 
-    createWindow();
+    const configPath = path.join(app.getPath("userData"), "config.json");
 
+    const readConfig = () => {
+      try {
+        return JSON.parse(fs.readFileSync(configPath, "utf8"));
+      } catch {
+        return {};
+      }
+    };
+
+    const writeConfig = (cfg) => {
+      fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2));
+    };
+
+    const defaultExcelPath = path.join(
+      os.homedir(),
+      "Desktop",
+      "widget-avaluo",
+      "EXCEL_MAESTRO.xlsx"
+    );
+
+    let stopSync = null;
+    let supabaseConfig = null;
     try {
-      const { startSync } = require("./sync-watch.cjs");
-      const supabaseConfig = require("./supabase-config.cjs");
-      if (supabaseConfig?.supabaseUrl && supabaseConfig?.anonKey) {
-        const configPath = path.join(app.getPath("userData"), "config.json");
-        let config = {};
-        try {
-          config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-        } catch {
-          /* sin config aun */
-        }
-        const excelPath =
-          config.excelPath ||
-          path.join(os.homedir(), "Desktop", "widget-avaluo", "EXCEL_MAESTRO.xlsx");
-        startSync({
+      supabaseConfig = require("./supabase-config.cjs");
+    } catch {
+      /* sin claves configuradas */
+    }
+
+    const sendSyncStatus = (message) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("sync:status", { message });
+      }
+    };
+
+    const startSyncWatcher = (excelPath) => {
+      if (stopSync) {
+        stopSync();
+        stopSync = null;
+      }
+      if (!supabaseConfig?.supabaseUrl || !supabaseConfig?.anonKey) {
+        sendSyncStatus("[sync] faltan las claves de Supabase");
+        return;
+      }
+      try {
+        const { startSync } = require("./sync-watch.cjs");
+        stopSync = startSync({
           ...supabaseConfig,
           excelPath,
-          onLog: (msg) => console.log(msg),
+          onLog: (msg) => sendSyncStatus(msg),
         });
+      } catch (err) {
+        sendSyncStatus(`[sync] error: ${err?.message ?? err}`);
       }
-    } catch (err) {
-      console.error("[sync]", err?.message ?? err);
-    }
+    };
+
+    ipcMain.handle("config:get", () => readConfig());
+    ipcMain.handle("config:set", (_event, payload) => {
+      const cfg = readConfig();
+      const next = { ...cfg, ...(payload ?? {}) };
+      if (next.excelPath) {
+        writeConfig(next);
+        startSyncWatcher(next.excelPath);
+      }
+      return next;
+    });
+    ipcMain.handle("dialog:pick-excel", async () => {
+      const res = await dialog.showOpenDialog(mainWindow, {
+        title: "Selecciona el Excel maestro",
+        filters: [{ name: "Excel", extensions: ["xlsx"] }],
+        properties: ["openFile"],
+      });
+      if (res.canceled || !res.filePaths[0]) return null;
+      return res.filePaths[0];
+    });
+
+    createWindow();
+
+    startSyncWatcher(readConfig().excelPath || defaultExcelPath);
 
     if (app.isPackaged) {
       const { autoUpdater } = require("electron-updater");

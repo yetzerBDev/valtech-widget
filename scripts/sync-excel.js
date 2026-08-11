@@ -72,6 +72,8 @@ const NORM_MAP = {
   tiempo: "tiempo",
   "dias abierto": "dias_abierto",
   "encuesta a cliente de tiempo estimado de recibida solicitud": "encuesta",
+  "fecha envio solicitud a perito": "fecha_envio_perito",
+  "fecha envio visita de campo": "fecha_envio_visita",
 };
 
 function excelSerialToDate(serial) {
@@ -128,7 +130,9 @@ function parseWorkbook(filePath) {
   const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
   const colMap = [];
   headers.forEach((h, idx) => {
-    const key = NORM_MAP[h];
+    let key = NORM_MAP[h];
+    if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
+    if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
     if (key) colMap[idx] = key;
   });
   if (!colMap.includes("no_avaluo")) {
@@ -136,6 +140,7 @@ function parseWorkbook(filePath) {
   }
 
   const out = [];
+  const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
   for (let r = headerIdx + 1; r < rows.length; r++) {
     const row = rows[r] ?? [];
     const empty = row.every((c) => c === null || c === undefined || String(c).trim() === "");
@@ -145,7 +150,7 @@ function parseWorkbook(filePath) {
       const key = colMap[c];
       if (!key) continue;
       const v = row[c];
-      if (key === "fecha_banco" || key === "recibe") rec[key] = toCleanDate(v);
+      if (DATE_KEYS.has(key)) rec[key] = toCleanDate(v);
       else if (key === "dias_abierto") rec[key] = toCleanNumber(v);
       else rec[key] = toCleanString(v);
     }

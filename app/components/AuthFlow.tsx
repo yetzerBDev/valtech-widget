@@ -14,6 +14,8 @@ import {
   CloudOffIcon,
   CloudCheckIcon,
   Download01Icon,
+  Settings01Icon,
+  FolderSearchIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
@@ -105,6 +107,10 @@ export default function AuthFlow() {
   >(null);
   const [avaluos, setAvaluos] = useState<Avaluo[] | null>(null);
   const [avaluosError, setAvaluosError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [excelPathInput, setExcelPathInput] = useState("");
+  const [syncLog, setSyncLog] = useState<string[]>([]);
+  const [savingSync, setSavingSync] = useState(false);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -192,6 +198,17 @@ export default function AuthFlow() {
       ),
     ];
     return () => offs.forEach((off) => off?.());
+  }, [isWidget]);
+
+  useEffect(() => {
+    if (!isWidget || !window.electronAPI?.getConfig) return;
+    window.electronAPI.getConfig().then((cfg) => {
+      setExcelPathInput(cfg?.excelPath ?? "");
+    });
+    const off = window.electronAPI.onSyncStatus?.(({ message }) => {
+      setSyncLog((logs) => [...logs.slice(-8), message]);
+    });
+    return () => off?.();
   }, [isWidget]);
 
   useEffect(() => {
@@ -303,6 +320,30 @@ export default function AuthFlow() {
     )}&rt=${encodeURIComponent(s.refresh_token)}`;
   }
 
+  async function guardarSync() {
+    if (!window.electronAPI?.setConfig) return;
+    setSavingSync(true);
+    const trimmed = excelPathInput.trim();
+    try {
+      await window.electronAPI.setConfig({ excelPath: trimmed || undefined });
+      setExcelPathInput(trimmed);
+      setSyncLog((l) => [
+        ...l.slice(-8),
+        trimmed ? `[sync] ruta guardada: ${trimmed}` : "[sync] ruta por defecto restaurada",
+      ]);
+    } catch {
+      setSyncLog((l) => [...l.slice(-8), "[sync] no se pudo guardar la ruta"]);
+    } finally {
+      setSavingSync(false);
+    }
+  }
+
+  async function buscarExcel() {
+    if (!window.electronAPI?.pickExcel) return;
+    const p = await window.electronAPI.pickExcel();
+    if (p) setExcelPathInput(p);
+  }
+
   if (isWidget) {
     if (!user) {
       return (
@@ -396,6 +437,17 @@ export default function AuthFlow() {
             priority
           />
           <div className="flex items-center gap-1.5">
+            {cargo === "encargado" && (
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                aria-label="Configuración de sincronización"
+                title="Configuración de sincronización"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <HugeiconsIcon icon={Settings01Icon} size={13} strokeWidth={2} />
+              </button>
+            )}
             {update && (
               <button
                 type="button"
@@ -648,6 +700,106 @@ export default function AuthFlow() {
             )}
           </div>
         </div>
+
+        {showSettings && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowSettings(false)}
+          >
+            <div
+              className="w-full max-w-[340px] rounded-2xl border border-outline-variant/30 bg-surface p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-[13px] font-bold tracking-tight text-on-surface">
+                  Configuración de sincronización
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(false)}
+                  aria-label="Cerrar"
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.4}
+                    strokeLinecap="round"
+                  >
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-on-surface-variant">
+                Pega la ruta del archivo Excel maestro que trabaja el encargado. Al guardar, este
+                widget lo vigilará y subirá los cambios automáticamente.
+              </p>
+              <label className="mt-3 block text-[10px] font-bold uppercase tracking-wide text-on-surface-variant">
+                Ruta del Excel
+              </label>
+              <div className="mt-1 flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={excelPathInput}
+                  onChange={(e) => setExcelPathInput(e.target.value)}
+                  placeholder="C:\Usuarios\…\EXCEL_MAESTRO.xlsx"
+                  spellCheck={false}
+                  className="min-w-0 flex-1 rounded-lg border border-outline-variant/60 bg-surface-container-high px-2.5 py-2 text-[11px] text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
+                <button
+                  type="button"
+                  onClick={buscarExcel}
+                  disabled={savingSync}
+                  className="flex h-8 shrink-0 items-center gap-1 rounded-lg bg-surface-container-high px-2 text-[10px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60"
+                  title="Buscar archivo"
+                >
+                  <HugeiconsIcon icon={FolderSearchIcon} size={12} strokeWidth={2} />
+                  Buscar
+                </button>
+              </div>
+              {syncLog.length > 0 && (
+                <div className="mt-3 max-h-28 overflow-y-auto rounded-lg bg-surface-container-high/60 p-2 font-mono text-[9.5px] leading-relaxed text-on-surface-variant">
+                  {syncLog.map((l, i) => (
+                    <p key={i} className="truncate">
+                      {l}
+                    </p>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(false)}
+                  className="flex h-9 flex-1 items-center justify-center rounded-lg border border-outline-variant/60 text-[12px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={guardarSync}
+                  disabled={savingSync}
+                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60"
+                >
+                  {savingSync ? (
+                    <HugeiconsIcon
+                      icon={Loading02Icon}
+                      size={13}
+                      strokeWidth={2}
+                      className="animate-spin motion-reduce:animate-none"
+                    />
+                  ) : (
+                    <HugeiconsIcon icon={CloudCheckIcon} size={13} strokeWidth={2} />
+                  )}
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     );
   }

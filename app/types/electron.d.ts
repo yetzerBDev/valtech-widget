@@ -16,6 +16,10 @@ declare global {
       onUpdateDownloaded: (callback: (payload: { version: string }) => void) => () => void;
       onUpdateError: (callback: (payload: { message: string }) => void) => () => void;
       quitAndInstall: () => void;
+      getConfig: () => Promise<{ excelPath?: string }>;
+      setConfig: (payload: { excelPath?: string }) => Promise<{ excelPath?: string }>;
+      pickExcel: () => Promise<string | null>;
+      onSyncStatus: (callback: (payload: { message: string }) => void) => () => void;
     };
   }
 }
