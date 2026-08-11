@@ -60,26 +60,48 @@ export default function AuthFlow() {
 
   useEffect(() => {
     if (!supabase || !user) return;
+    const client = supabase;
     let cancelled = false;
-    const nombre =
-      typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
-        : (user.email ?? user.id);
-    (async () => {
-      const { error } = await supabase.from("perfiles").upsert(
-        { id: user.id, email: user.email ?? "", nombre },
-        { onConflict: "id" }
-      );
-      if (cancelled || error) return;
-      const { data } = await supabase
+
+    const cargarPerfil = async () => {
+      const { data } = await client
         .from("perfiles")
         .select("nombre, cargo")
         .eq("id", user.id)
         .maybeSingle();
       if (!cancelled) setPerfil(data ?? null);
+    };
+
+    const nombre =
+      typeof user.user_metadata?.full_name === "string"
+        ? user.user_metadata.full_name
+        : (user.email ?? user.id);
+
+    (async () => {
+      const { error } = await client.from("perfiles").upsert(
+        { id: user.id, email: user.email ?? "", nombre },
+        { onConflict: "id" }
+      );
+      if (error || cancelled) return;
+      await cargarPerfil();
     })();
+
+    const channel = client
+      .channel(`perfiles:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "perfiles", filter: `id=eq.${user.id}` },
+        () => cargarPerfil()
+      )
+      .subscribe();
+
+    const onFocus = () => cargarPerfil();
+    window.addEventListener("focus", onFocus);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      client.removeChannel(channel);
     };
   }, [user]);
 
