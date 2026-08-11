@@ -48,3 +48,4 @@ next-env.d.ts
 /EXCEL_MAESTRO.xlsx
 ~$*
 /.env.sync
+/electron/supabase-config.cjs

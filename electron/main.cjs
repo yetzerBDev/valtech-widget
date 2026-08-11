@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const http = require("http");
+const os = require("os");
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -229,6 +230,30 @@ if (!gotTheLock) {
     ipcMain.handle("app:get-version", () => app.getVersion());
 
     createWindow();
+
+    try {
+      const { startSync } = require("./sync-watch.cjs");
+      const supabaseConfig = require("./supabase-config.cjs");
+      if (supabaseConfig?.supabaseUrl && supabaseConfig?.anonKey) {
+        const configPath = path.join(app.getPath("userData"), "config.json");
+        let config = {};
+        try {
+          config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        } catch {
+          /* sin config aun */
+        }
+        const excelPath =
+          config.excelPath ||
+          path.join(os.homedir(), "Desktop", "widget-avaluo", "EXCEL_MAESTRO.xlsx");
+        startSync({
+          ...supabaseConfig,
+          excelPath,
+          onLog: (msg) => console.log(msg),
+        });
+      }
+    } catch (err) {
+      console.error("[sync]", err?.message ?? err);
+    }
 
     if (app.isPackaged) {
       const { autoUpdater } = require("electron-updater");
