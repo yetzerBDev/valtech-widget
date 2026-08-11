@@ -551,9 +551,19 @@ export default function AuthFlow() {
             <p className="text-[12px] leading-relaxed text-on-surface-variant">
               Este widget se actualiza solo: minimízalo cuando quieras.
             </p>
-            {perfil?.nombre && (
-              <p className="mt-1 truncate text-[11px] font-semibold text-on-surface">
-                {perfil.nombre}
+            {(perfil?.nombre || perfil?.cargo) && (
+              <p className="mt-1 flex items-center gap-1.5 truncate">
+                {perfil?.cargo && (
+                  <span className="flex shrink-0 items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    <HugeiconsIcon icon={UserCircleIcon} size={11} strokeWidth={2} />
+                    {perfil.cargo}
+                  </span>
+                )}
+                {perfil?.nombre && (
+                  <span className="truncate text-[11px] font-semibold text-on-surface">
+                    {perfil.nombre}
+                  </span>
+                )}
               </p>
             )}
           </div>
