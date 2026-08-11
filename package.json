@@ -1,0 +1,60 @@
+{
+  "name": "widget-avaluo",
+  "version": "0.1.0",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "electron": "electron .",
+    "dev:electron": "electron .",
+    "widget": "next build && electron .",
+    "dist": "next build && electron-builder",
+    "dist:win": "next build && electron-builder --win"
+  },
+  "dependencies": {
+    "@hugeicons/core-free-icons": "^4.2.3",
+    "@hugeicons/react": "^1.1.9",
+    "@supabase/supabase-js": "^2.112.3",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "electron": "^43.3.0",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.widget.avaluo",
+    "productName": "Widget Avalúo",
+    "files": [
+      "out/**",
+      "electron/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Widget Avalúo",
+      "runAfterFinish": true
+    }
+  }
+}
