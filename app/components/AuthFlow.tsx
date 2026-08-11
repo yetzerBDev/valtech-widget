@@ -95,7 +95,7 @@ export default function AuthFlow() {
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
+  const [widgetTab, setWidgetTab] = useState<"abiertos" | "cerrados">("abiertos");
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
@@ -415,18 +415,14 @@ export default function AuthFlow() {
       const e = normEstatus(s);
       return e === "abierto" || e === "abierta";
     };
-    const esStandBy = (s: string | null) => {
-      const e = normEstatus(s);
-      return e === "standby" || e.startsWith("stand by");
-    };
     const esCerrado = (s: string | null) => {
       const e = normEstatus(s);
       return e === "cerrado" || e === "cerrada";
     };
-    const visibles = listado.filter((a) => esSuyo(a) && !esCerrado(a.estatus));
+    const visibles = listado.filter(esSuyo);
     const abiertos = visibles.filter((a) => esAbierto(a.estatus));
-    const conVisita = visibles.filter((a) => esStandBy(a.estatus));
-    const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
+    const cerrados = visibles.filter((a) => esCerrado(a.estatus));
+    const actuales = widgetTab === "abiertos" ? abiertos : cerrados;
     const cargando = avaluos === null && !avaluosError;
 
     return (
@@ -581,22 +577,22 @@ export default function AuthFlow() {
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "convisita"}
-              onClick={() => setWidgetTab("convisita")}
+              aria-selected={widgetTab === "cerrados"}
+              onClick={() => setWidgetTab("cerrados")}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "convisita"
+                widgetTab === "cerrados"
                   ? "bg-primary text-white shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
               <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
-              Con visita
+              Cerrados
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "convisita" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "cerrados" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
-                {conVisita.length}
+                {cerrados.length}
               </span>
             </button>
           </div>
@@ -629,12 +625,12 @@ export default function AuthFlow() {
                 />
               </div>
               <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos con visita"}
+                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos cerrados"}
               </h2>
               <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
                 {widgetTab === "abiertos"
                   ? "Los avalúos con estado Abierto aparecerán aquí en tiempo real."
-                  : "Los avalúos con visita aparecerán aquí en tiempo real."}
+                  : "Los avalúos con estado Cerrado aparecerán aquí en tiempo real."}
               </p>
             </div>
           ) : (
