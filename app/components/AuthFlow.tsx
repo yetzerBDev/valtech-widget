@@ -246,28 +246,6 @@ export default function AuthFlow() {
 
         <div className="mx-auto w-full max-w-[400px]">{content}</div>
       </main>
-
-      <footer className="border-t border-zinc-200 bg-white py-6">
-        <div className="mx-auto flex w-full max-w-[560px] flex-col items-center justify-center gap-3 px-6 text-center">
-          <p className="text-[12px] leading-relaxed text-zinc-500">
-            © {new Date().getFullYear()} Valtech. Todos los derechos reservados.
-          </p>
-          <nav className="flex items-center gap-5">
-            <Link
-              href="/privacidad"
-              className="text-[12px] font-medium text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            >
-              Política de privacidad
-            </Link>
-            <Link
-              href="/terminos"
-              className="text-[12px] font-medium text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-            >
-              Términos de servicio
-            </Link>
-          </nav>
-        </div>
-      </footer>
     </div>
   );
 }
