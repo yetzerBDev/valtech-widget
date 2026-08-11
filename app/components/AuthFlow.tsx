@@ -10,7 +10,7 @@ import {
   Logout01Icon,
   UserCircleIcon,
   MapPinIcon,
-  Clock01Icon,
+  MapPinCheckIcon,
   CloudOffIcon,
   CloudCheckIcon,
   Download01Icon,
@@ -93,7 +93,7 @@ export default function AuthFlow() {
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [widgetTab, setWidgetTab] = useState<"abiertos" | "standby">("abiertos");
+  const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
@@ -380,8 +380,8 @@ export default function AuthFlow() {
     };
     const visibles = listado.filter(esSuyo);
     const abiertos = visibles.filter((a) => esAbierto(a.estatus));
-    const standby = visibles.filter((a) => esStandBy(a.estatus));
-    const actuales = widgetTab === "abiertos" ? abiertos : standby;
+    const conVisita = visibles.filter((a) => esStandBy(a.estatus));
+    const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
     const cargando = avaluos === null && !avaluosError;
 
     return (
@@ -525,22 +525,22 @@ export default function AuthFlow() {
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "standby"}
-              onClick={() => setWidgetTab("standby")}
+              aria-selected={widgetTab === "convisita"}
+              onClick={() => setWidgetTab("convisita")}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "standby"
+                widgetTab === "convisita"
                   ? "bg-primary text-white shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <HugeiconsIcon icon={Clock01Icon} size={13} strokeWidth={2} />
-              Stand by
+              <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
+              Con visita
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "standby" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "convisita" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
-                {standby.length}
+                {conVisita.length}
               </span>
             </button>
           </div>
@@ -567,18 +567,18 @@ export default function AuthFlow() {
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
                 <HugeiconsIcon
-                  icon={widgetTab === "abiertos" ? MapPinIcon : Clock01Icon}
+                  icon={widgetTab === "abiertos" ? MapPinIcon : MapPinCheckIcon}
                   size={20}
                   strokeWidth={1.5}
                 />
               </div>
               <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos en stand by"}
+                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos con visita"}
               </h2>
               <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
                 {widgetTab === "abiertos"
                   ? "Los avalúos con estado Abierto aparecerán aquí en tiempo real."
-                  : "Los avalúos en espera aparecerán aquí en tiempo real."}
+                  : "Los avalúos con visita aparecerán aquí en tiempo real."}
               </p>
             </div>
           ) : (
