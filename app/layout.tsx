@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Valtech",
-  description: "Sistema de avalúos Valtech",
+  description:
+    "Plataforma privada para el control de solicitudes de avalúos.",
   icons: {
     icon: "/LOGO VALTECH.png",
   },

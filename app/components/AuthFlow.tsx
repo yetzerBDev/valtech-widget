@@ -39,19 +39,18 @@ function GoogleLogo({ className }: { className?: string }) {
 export default function AuthFlow() {
   const [isWidget, setIsWidget] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [hydrated, setHydrated] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = window.setTimeout(async () => {
+    const id = window.setTimeout(() => {
       const widget = Boolean(window.electronAPI);
       setIsWidget(widget);
       if (!widget && supabase) {
-        const { data } = await supabase.auth.getSession();
-        setUser(data.session?.user ?? null);
+        supabase.auth.getSession().then(({ data }) => {
+          setUser(data.session?.user ?? null);
+        });
       }
-      setHydrated(true);
     }, 0);
     return () => window.clearTimeout(id);
   }, []);
@@ -63,8 +62,6 @@ export default function AuthFlow() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
-
-  if (!hydrated) return null;
 
   async function signIn() {
     if (!supabase) return;
