@@ -228,29 +228,6 @@ export default function AuthFlow() {
             </div>
           </div>
         </main>
-
-        <footer className="mt-auto w-full border-t border-outline-variant/30 bg-surface/50">
-          <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row md:px-12">
-            <div className="text-center text-[12px] font-medium tracking-wide text-secondary md:text-left">
-              © {new Date().getFullYear()} Valtech. Plataforma privada para el control de solicitudes de avalúos.
-            </div>
-            <div className="flex items-center gap-8">
-              <Link
-                href="/privacidad"
-                className="text-[12px] font-medium text-secondary transition-colors hover:text-primary"
-              >
-                Privacidad
-              </Link>
-              <Link
-                href="/terminos"
-                className="text-[12px] font-medium text-secondary transition-colors hover:text-primary"
-              >
-                Términos de servicio
-              </Link>
-              <span className="text-[12px] font-medium text-secondary">Contacto</span>
-            </div>
-          </div>
-        </footer>
       </div>
     );
   }
