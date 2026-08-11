@@ -41,7 +41,7 @@ function createWindow() {
     closable: false,
     alwaysOnTop: ALWAYS_ON_TOP,
     show: false,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fafafa",
     title: "Widget Avalúo",
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),

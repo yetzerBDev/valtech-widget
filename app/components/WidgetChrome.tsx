@@ -1,24 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 export default function WidgetChrome() {
-  const [size, setSize] = useState<[number, number] | null>(null);
-
-  useEffect(() => {
-    window.electronAPI?.getSize().then(setSize);
-  }, []);
-
   return (
-    <div className="fixed inset-x-0 top-0 z-40 flex h-7 items-center select-none [-webkit-app-region:drag]">
-      <span className="px-3 text-[10px] tabular-nums text-zinc-400">
-        {size ? `${size[0]} × ${size[1]}` : ""}
-      </span>
+    <div className="fixed inset-x-0 top-0 z-40 flex h-7 items-center select-none bg-background/80 backdrop-blur-sm [-webkit-app-region:drag]">
       <button
         type="button"
         aria-label="Minimizar"
         onClick={() => window.electronAPI?.minimize()}
-        className="ml-auto flex h-7 w-9 items-center justify-center text-zinc-500 transition-colors hover:bg-zinc-200 [-webkit-app-region:no-drag]"
+        className="ml-auto flex h-7 w-9 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none [-webkit-app-region:no-drag]"
       >
         <span className="block h-px w-3 bg-current" />
       </button>

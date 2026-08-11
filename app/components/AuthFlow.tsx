@@ -127,35 +127,46 @@ export default function AuthFlow() {
 
   if (isWidget) {
     return (
-      <main className="flex min-h-[100dvh] flex-col px-6 pb-7 pt-6">
-        <header className="flex items-center gap-3">
-          <Image
-            src="/LOGO VALTECH.png"
-            alt="Valtech"
-            width={40}
-            height={40}
-            className="h-10 w-10 object-contain"
-            priority
-          />
-          <span className="text-[15px] font-semibold tracking-tight text-zinc-900">Valtech</span>
+      <main className="flex min-h-[100dvh] flex-col bg-background px-5 pb-5 pt-7 text-on-background">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/LOGO VALTECH.png"
+              alt="Valtech"
+              width={30}
+              height={30}
+              className="h-[30px] w-[30px] object-contain"
+              priority
+            />
+            <span className="text-[15px] font-bold tracking-tight text-on-surface">Valtech</span>
+          </div>
+          <span className="flex items-center gap-1.5 rounded-full border border-outline-variant bg-surface-container-high px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            </span>
+            Widget activo
+          </span>
         </header>
 
         <section className="mt-auto">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
-            <HugeiconsIcon icon={MonitorDotIcon} size={24} strokeWidth={1.75} />
-          </span>
-          <h1 className="mt-4 max-w-[18ch] text-balance text-[24px] font-semibold leading-[1.15] tracking-tight text-zinc-900">
-            Widget instalado y en ejecución
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-high text-primary">
+            <HugeiconsIcon icon={MonitorDotIcon} size={26} strokeWidth={1.75} />
+          </div>
+          <h1 className="mt-4 text-[22px] font-bold leading-[1.2] tracking-tight text-on-surface">
+            En ejecución
           </h1>
-          <p className="mt-2 max-w-[30ch] text-[14px] leading-relaxed text-zinc-600">
-            Este widget se abre automáticamente al encender el PC y solo se puede minimizar, nunca cerrar.
+          <p className="mt-1.5 max-w-[30ch] text-[14px] leading-relaxed text-on-surface-variant">
+            Este widget se abre automáticamente al encender el PC y solo puede minimizarse, nunca cerrarse.
           </p>
         </section>
 
         <div className="mt-auto">
-          <p className="rounded-xl bg-zinc-50 px-4 py-3 text-[13px] leading-relaxed text-zinc-600">
-            Para minimizarlo usa el botón de la esquina superior derecha. Los datos de tus avalúos aparecerán aquí.
-          </p>
+          <div className="rounded-2xl border border-outline-variant/60 bg-surface p-4">
+            <p className="text-[13px] leading-relaxed text-on-surface-variant">
+              Próximamente verás aquí tus solicitudes de avalúo en tiempo real.
+            </p>
+          </div>
         </div>
       </main>
     );
