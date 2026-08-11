@@ -36,6 +36,8 @@ type Avaluo = {
   solicitante: string | null;
   perito: string | null;
   digitador: string | null;
+  fecha_envio_perito: string | null;
+  fecha_envio_visita: string | null;
 };
 
 function normalizeNombre(v: string): string {
@@ -55,11 +57,43 @@ function colorEstatus(estatus: string | null): string {
   return "bg-orange-500";
 }
 
-function horasDesdeRecibe(recibe: string | null): number | null {
-  if (!recibe) return null;
-  const t = new Date(`${recibe}T00:00:00`).getTime();
+function horasDesde(fecha: string | null): number | null {
+  if (!fecha) return null;
+  const t = new Date(`${fecha}T00:00:00`).getTime();
   if (Number.isNaN(t)) return null;
   return Math.floor((Date.now() - t) / HOUR_MS);
+}
+
+function formatFecha(fecha: string | null): string {
+  if (!fecha) return "—";
+  const [y, m, d] = fecha.split("-");
+  if (!y || !m || !d) return fecha;
+  return `${d}/${m}/${y}`;
+}
+
+function LineaTiempo({
+  fecha,
+  horas,
+  texto,
+  sin,
+}: {
+  fecha: string | null;
+  horas: number | null;
+  texto: string;
+  sin: string;
+}) {
+  const s = semaforo(horas);
+  return (
+    <div className="mt-2 flex items-center gap-1.5 pl-1">
+      <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+      <span className="shrink-0 text-[10.5px] font-bold leading-none" style={{ color: s.color }}>
+        {formatFecha(fecha)}
+      </span>
+      <span className="truncate text-[10.5px] leading-none text-on-surface-variant">
+        {horas === null ? sin : `${etiquetaTiempo(horas)} ${texto}`}
+      </span>
+    </div>
+  );
 }
 
 function semaforo(horas: number | null) {
@@ -95,7 +129,7 @@ export default function AuthFlow() {
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [widgetTab, setWidgetTab] = useState<"abiertos" | "cerrados">("abiertos");
+  const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
@@ -152,7 +186,7 @@ export default function AuthFlow() {
       const { data, error } = await client
         .from("avaluos")
         .select(
-          "no_avaluo, fecha_banco, recibe, tipo, area_solicitud, estatus, solicitante, perito, digitador"
+          "no_avaluo, fecha_banco, recibe, tipo, area_solicitud, estatus, solicitante, perito, digitador, fecha_envio_perito, fecha_envio_visita"
         )
         .order("recibe", { ascending: true });
       if (cancelled) return;
@@ -411,18 +445,18 @@ export default function AuthFlow() {
       return nombreNorm !== "" && normalizeNombre(col ?? "") === nombreNorm;
     };
     const normEstatus = (s: string | null) => (s ?? "").trim().toLowerCase();
-    const esAbierto = (s: string | null) => {
-      const e = normEstatus(s);
-      return e === "abierto" || e === "abierta";
-    };
     const esCerrado = (s: string | null) => {
       const e = normEstatus(s);
       return e === "cerrado" || e === "cerrada";
     };
-    const visibles = listado.filter(esSuyo);
-    const abiertos = visibles.filter((a) => esAbierto(a.estatus));
-    const cerrados = visibles.filter((a) => esCerrado(a.estatus));
-    const actuales = widgetTab === "abiertos" ? abiertos : cerrados;
+    const tieneVisita = (a: Avaluo) => {
+      const v = a.fecha_envio_visita;
+      return v != null && v.trim() !== "";
+    };
+    const visibles = listado.filter((a) => esSuyo(a) && !esCerrado(a.estatus));
+    const abiertos = visibles.filter((a) => !tieneVisita(a));
+    const conVisita = visibles.filter(tieneVisita);
+    const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
     const cargando = avaluos === null && !avaluosError;
 
     return (
@@ -564,7 +598,6 @@ export default function AuthFlow() {
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <HugeiconsIcon icon={MapPinIcon} size={13} strokeWidth={2} />
               Abiertos
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
@@ -577,22 +610,21 @@ export default function AuthFlow() {
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "cerrados"}
-              onClick={() => setWidgetTab("cerrados")}
+              aria-selected={widgetTab === "convisita"}
+              onClick={() => setWidgetTab("convisita")}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "cerrados"
+                widgetTab === "convisita"
                   ? "bg-primary text-white shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
-              Cerrados
+              Con visita
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "cerrados" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "convisita" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
-                {cerrados.length}
+                {conVisita.length}
               </span>
             </button>
           </div>
@@ -625,20 +657,20 @@ export default function AuthFlow() {
                 />
               </div>
               <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos cerrados"}
+                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos con visita"}
               </h2>
               <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
                 {widgetTab === "abiertos"
-                  ? "Los avalúos con estado Abierto aparecerán aquí en tiempo real."
-                  : "Los avalúos con estado Cerrado aparecerán aquí en tiempo real."}
+                  ? "Los avalúos sin visita enviada aparecerán aquí en tiempo real."
+                  : "Los avalúos con visita enviada aparecerán aquí en tiempo real."}
               </p>
             </div>
           ) : (
             <div className="h-full overflow-y-auto pr-0.5">
               <ul className="flex flex-col gap-2">
                 {actuales.map((a) => {
-                  const horas = horasDesdeRecibe(a.recibe);
-                  const s = semaforo(horas);
+                  const horasPerito = horasDesde(a.fecha_envio_perito);
+                  const horasVisita = horasDesde(a.fecha_envio_visita);
                   return (
                     <li
                       key={a.no_avaluo}
@@ -663,13 +695,36 @@ export default function AuthFlow() {
                         <span className="shrink-0 text-outline">·</span>
                         <span className="truncate">{a.area_solicitud ?? "—"}</span>
                       </div>
-                      <div className="mt-2 flex items-center gap-1.5 pl-1">
-                        <span className={`h-2 w-2 rounded-full ${s.dot}`} />
-                        <span className="text-[10.5px] font-bold leading-none" style={{ color: s.color }}>
-                          {etiquetaTiempo(horas)}
-                        </span>
-                        <span className="text-[10.5px] leading-none text-on-surface-variant">desde recibe</span>
-                      </div>
+                      {cargo === "encargado" ? (
+                        <>
+                          <LineaTiempo
+                            fecha={a.fecha_envio_perito}
+                            horas={horasPerito}
+                            texto="desde solicitud al perito"
+                            sin="sin solicitud al perito"
+                          />
+                          <LineaTiempo
+                            fecha={a.fecha_envio_visita}
+                            horas={horasVisita}
+                            texto="desde visita del perito"
+                            sin="sin visita del perito"
+                          />
+                        </>
+                      ) : cargo === "perito" ? (
+                        <LineaTiempo
+                          fecha={a.fecha_envio_perito}
+                          horas={horasPerito}
+                          texto="desde que te solicitaron la visita"
+                          sin="sin solicitud de visita"
+                        />
+                      ) : (
+                        <LineaTiempo
+                          fecha={a.fecha_envio_visita}
+                          horas={horasVisita}
+                          texto="desde que el perito envió la visita"
+                          sin="sin visita recibida"
+                        />
+                      )}
                     </li>
                   );
                 })}
