@@ -237,30 +237,18 @@ export default function AuthFlow() {
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-zinc-100">
-      <header className="flex items-center gap-3 px-6 pt-8">
-        <Image
-          src="/LOGO VALTECH.png"
-          alt="Valtech"
-          width={40}
-          height={40}
-          className="h-10 w-10 object-contain"
-          priority
-        />
-        <span className="text-[15px] font-semibold tracking-tight text-zinc-900">Valtech</span>
-      </header>
+      <main className="mx-auto grid w-full max-w-[1080px] flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-2 lg:gap-16">
+        <section className="text-center lg:text-left">
+          <h1 className="text-balance text-[36px] font-semibold leading-tight tracking-tight text-zinc-900">
+            Valtech
+          </h1>
+          <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-relaxed text-zinc-600 lg:mx-0">
+            Valtech es una plataforma de gestión de tasaciones y control de proyectos inmobiliarios diseñada
+            para profesionales en Honduras.
+          </p>
+        </section>
 
-      <section className="mx-auto mt-10 w-full max-w-[620px] px-6 text-center">
-        <h1 className="text-balance text-[32px] font-semibold leading-tight tracking-tight text-zinc-900">
-          Valtech
-        </h1>
-        <p className="mx-auto mt-3 max-w-[54ch] text-[15px] leading-relaxed text-zinc-600">
-          Valtech es una plataforma de gestión de tasaciones y control de proyectos inmobiliarios diseñada
-          para profesionales en Honduras.
-        </p>
-      </section>
-
-      <main className="mx-auto mt-8 flex w-full max-w-[400px] flex-1 flex-col items-center justify-center px-6 pb-12">
-        {content}
+        <div className="mx-auto w-full max-w-[400px]">{content}</div>
       </main>
 
       <footer className="border-t border-zinc-200 bg-white py-6">
