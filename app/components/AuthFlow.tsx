@@ -7,18 +7,11 @@ import type { User } from "@supabase/supabase-js";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading02Icon,
-  CircleCheckIcon,
   MonitorDotIcon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
-
-const INSTALL_STEPS = [
-  "Abre la carpeta del proyecto y ejecuta npm run dist:win para generar el instalador.",
-  "Entra en la carpeta release y ejecuta Widget Avalúo Setup.exe.",
-  "Sigue la instalación. El widget quedará en tu escritorio y en el inicio de Windows.",
-  "Abre el widget. Se iniciará solo cada vez que enciendas el PC.",
-];
+import DownloadExe from "./DownloadExe";
 
 const CARD_SHADOW =
   "shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)]";
@@ -39,6 +32,7 @@ function GoogleLogo({ className }: { className?: string }) {
 export default function AuthFlow() {
   const [isWidget, setIsWidget] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
@@ -62,6 +56,22 @@ export default function AuthFlow() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!supabase || !user) return;
+    let cancelled = false;
+    supabase
+      .from("perfiles")
+      .select("nombre, cargo")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setPerfil(data ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   async function signIn() {
     if (!supabase) return;
@@ -119,6 +129,10 @@ export default function AuthFlow() {
     );
   }
 
+  const cargoLabel = perfil?.cargo
+    ? perfil.cargo.charAt(0).toUpperCase() + perfil.cargo.slice(1)
+    : null;
+
   const content = user ? (
     <div className={`w-full max-w-[400px] rounded-2xl bg-white p-7 ${CARD_SHADOW}`}>
       <header className="flex items-center justify-between gap-3">
@@ -143,31 +157,26 @@ export default function AuthFlow() {
       </header>
 
       <section className="mt-7">
-        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
-          <HugeiconsIcon icon={CircleCheckIcon} size={24} strokeWidth={1.75} />
-        </span>
-        <h2 className="mt-4 text-balance text-[24px] font-semibold leading-[1.15] tracking-tight text-zinc-900">
-          Ya casi. Instala el widget
+        <h2 className="text-balance text-[24px] font-semibold leading-[1.15] tracking-tight text-zinc-900">
+          Hola, {perfil?.nombre || user.user_metadata?.full_name || user.email}
         </h2>
-        <p className="mt-2 max-w-[38ch] text-[14px] leading-relaxed text-zinc-600">
-          Accediste como {user.email}. Sigue estos pasos y tendrás tus avalúos siempre a la vista.
-        </p>
+        {cargoLabel ? (
+          <span className="mt-3 inline-flex items-center rounded-full bg-brand/10 px-3 py-1 text-[13px] font-medium text-brand">
+            {cargoLabel}
+          </span>
+        ) : (
+          <p className="mt-3 text-[13px] leading-relaxed text-zinc-500">
+            Tu cargo aún no está asignado. Contacta al administrador.
+          </p>
+        )}
       </section>
 
-      <ol className="mt-7 flex flex-col gap-4">
-        {INSTALL_STEPS.map((step, i) => (
-          <li key={i} className="flex items-start gap-3">
-            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[12px] font-semibold text-zinc-700">
-              {i + 1}
-            </span>
-            <p className="text-[14px] leading-relaxed text-zinc-600">{step}</p>
-          </li>
-        ))}
-      </ol>
-
-      <p className="mt-7 rounded-xl bg-zinc-50 px-4 py-3 text-[13px] leading-relaxed text-zinc-600">
-        Cuando lo tengas listo, el widget se abrirá solo al encender el PC y solo podrás minimizarlo, nunca cerrarlo.
-      </p>
+      <div className="mt-7">
+        <DownloadExe />
+        <p className="mt-3 text-center text-[12px] leading-relaxed text-zinc-500">
+          Descarga e instala el widget para tener tus avalúos siempre a la vista en Windows.
+        </p>
+      </div>
     </div>
   ) : (
     <div className={`w-full max-w-[380px] rounded-2xl bg-white px-7 py-9 ${CARD_SHADOW}`}>
