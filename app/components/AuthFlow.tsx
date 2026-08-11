@@ -9,6 +9,7 @@ import {
   Loading02Icon,
   MonitorDotIcon,
   Logout01Icon,
+  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
@@ -142,52 +143,119 @@ export default function AuthFlow() {
     ? perfil.cargo.charAt(0).toUpperCase() + perfil.cargo.slice(1)
     : null;
 
-  const content = user ? (
-    <div className={`w-full max-w-[400px] rounded-2xl bg-white p-7 ${CARD_SHADOW}`}>
-      <header className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/LOGO VALTECH.png"
-            alt="Valtech"
-            width={36}
-            height={36}
-            className="h-9 w-9 object-contain"
-          />
-          <span className="text-[15px] font-semibold tracking-tight text-zinc-900">Valtech</span>
-        </div>
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand motion-reduce:transition-none"
-        >
-          <HugeiconsIcon icon={Logout01Icon} size={15} />
-          Salir
-        </button>
-      </header>
+  if (user) {
+    const hora = new Date().getHours();
+    const saludo =
+      hora >= 5 && hora < 12
+        ? "buenos días"
+        : hora >= 12 && hora < 19
+          ? "buenas tardes"
+          : "buenas noches";
+    const nombre = perfil?.nombre || user.user_metadata?.full_name || user.email;
 
-      <section className="mt-7">
-        <h2 className="text-balance text-[24px] font-semibold leading-[1.15] tracking-tight text-zinc-900">
-          Hola, {perfil?.nombre || user.user_metadata?.full_name || user.email}
-        </h2>
-        {cargoLabel ? (
-          <span className="mt-3 inline-flex items-center rounded-full bg-brand/10 px-3 py-1 text-[13px] font-medium text-brand">
-            {cargoLabel}
-          </span>
-        ) : (
-          <p className="mt-3 text-[13px] leading-relaxed text-zinc-500">
-            Tu cargo aún no está asignado. Contacta al administrador.
-          </p>
-        )}
-      </section>
+    return (
+      <div className="flex min-h-[100dvh] flex-col bg-background text-on-background">
+        <header className="sticky top-0 z-50 w-full border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md">
+          <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-4 md:px-12">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/LOGO VALTECH.png"
+                alt="Valtech"
+                width={32}
+                height={32}
+                className="h-8 w-auto object-contain"
+                priority
+              />
+              <span className="text-[20px] font-bold tracking-tight text-on-surface">
+                Valtech
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex items-center gap-2 text-[14px] font-semibold text-on-surface-variant opacity-80 transition-colors duration-200 hover:text-primary hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Salir
+              <HugeiconsIcon icon={Logout01Icon} size={20} />
+            </button>
+          </div>
+        </header>
 
-      <div className="mt-7">
-        <DownloadExe />
-        <p className="mt-3 text-center text-[12px] leading-relaxed text-zinc-500">
-          Descarga e instala el widget para tener tus avalúos siempre a la vista en Windows.
-        </p>
+        <main className="mx-auto flex w-full max-w-[1280px] flex-1 items-center justify-center px-4 py-12 md:px-12 md:py-24">
+          <div className="grid w-full grid-cols-1 items-center gap-16 md:grid-cols-2 md:gap-24">
+            <div className="order-2 flex flex-col gap-6 text-center md:order-1 md:text-left">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-[24px] font-medium tracking-tight text-primary">
+                  Hola, {nombre}, {saludo}
+                </h2>
+                <h1 className="text-[40px] font-bold leading-[1.1] tracking-tight text-on-surface md:text-[56px]">
+                  Valtech
+                </h1>
+              </div>
+              <p className="mx-auto max-w-md text-[18px] leading-relaxed text-on-surface-variant md:mx-0">
+                Es una plataforma privada para el control de solicitudes de avalúos.
+              </p>
+            </div>
+
+            <div className="order-1 flex justify-center md:order-2 md:justify-end">
+              <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface p-10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)]">
+                <div className="flex flex-col gap-3 text-center">
+                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-surface-container-high">
+                    <span className="text-primary">
+                      <HugeiconsIcon icon={UserCircleIcon} size={24} />
+                    </span>
+                  </div>
+                  <h3 className="text-[20px] font-semibold text-on-surface">Estado de cargo</h3>
+                  {cargoLabel ? (
+                    <p className="text-[14px] leading-5 text-on-surface-variant">
+                      Tu cargo es{" "}
+                      <span className="font-semibold text-primary">{cargoLabel}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[14px] leading-5 text-on-surface-variant">
+                      Tu cargo aún no está asignado. Contacta al administrador para habilitar tus funciones.
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
+                  <DownloadExe />
+                  <p className="mt-1 px-2 text-center text-[13px] font-medium leading-relaxed text-outline">
+                    Descarga e instala el widget para tener tus avalúos siempre a la vista en Windows.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="mt-auto w-full border-t border-outline-variant/30 bg-surface/50">
+          <div className="mx-auto flex w-full max-w-[1280px] flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row md:px-12">
+            <div className="text-center text-[12px] font-medium tracking-wide text-secondary md:text-left">
+              © {new Date().getFullYear()} Valtech. Plataforma privada para el control de solicitudes de avalúos.
+            </div>
+            <div className="flex items-center gap-8">
+              <Link
+                href="/privacidad"
+                className="text-[12px] font-medium text-secondary transition-colors hover:text-primary"
+              >
+                Privacidad
+              </Link>
+              <Link
+                href="/terminos"
+                className="text-[12px] font-medium text-secondary transition-colors hover:text-primary"
+              >
+                Términos de servicio
+              </Link>
+              <span className="text-[12px] font-medium text-secondary">Contacto</span>
+            </div>
+          </div>
+        </footer>
       </div>
-    </div>
-  ) : (
+    );
+  }
+
+  const content = (
     <div className={`w-full max-w-[380px] rounded-2xl bg-white px-7 py-9 ${CARD_SHADOW}`}>
       <div className="flex flex-col items-center text-center">
         <Image
@@ -251,13 +319,13 @@ export default function AuthFlow() {
   );
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-zinc-100">
+    <div className="flex min-h-[100dvh] flex-col bg-surface">
       <main className="mx-auto grid w-full max-w-[1080px] flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-2 lg:gap-16">
         <section className="text-center lg:text-left">
-          <h1 className="text-balance text-[36px] font-semibold leading-tight tracking-tight text-zinc-900">
+          <h1 className="text-balance text-[36px] font-semibold leading-tight tracking-tight text-on-surface">
             Valtech
           </h1>
-          <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-relaxed text-zinc-600 lg:mx-0">
+          <p className="mx-auto mt-4 max-w-[44ch] text-[16px] leading-relaxed text-on-surface-variant lg:mx-0">
             Es una plataforma privada para el control de solicitudes de avalúos.
           </p>
         </section>

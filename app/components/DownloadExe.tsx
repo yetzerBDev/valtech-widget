@@ -11,10 +11,10 @@ export default function DownloadExe() {
     <a
       href={EXE_URL}
       download
-      className="flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-brand text-[15px] font-medium text-white transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(24,24,27,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-[14px] font-semibold text-on-primary shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:translate-y-0 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <HugeiconsIcon icon={Download01Icon} size={18} strokeWidth={1.75} />
-      Descargar instalador (exe)
+      <HugeiconsIcon icon={Download01Icon} size={20} />
+      Descargar instalador
     </a>
   );
 }
