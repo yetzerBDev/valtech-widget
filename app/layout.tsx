@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/LOGO VALTECH.png",
   },
+  other: {
+    "google-site-verification": "uMFpcebvFpoh4_2FgXyZXBAQfDrft2C7_NZGR7VZfOc",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
