@@ -131,16 +131,21 @@ function parseWorkbook(filePath) {
 
 async function syncOnce(client, filePath) {
   const records = parseWorkbook(filePath);
+  const uniq = new Map();
+  for (const r of records) {
+    if (r.no_avaluo) uniq.set(r.no_avaluo, r);
+  }
+  const unique = [...uniq.values()];
   const BATCH = 400;
-  for (let i = 0; i < records.length; i += BATCH) {
-    const batch = records.slice(i, i + BATCH);
+  for (let i = 0; i < unique.length; i += BATCH) {
+    const batch = unique.slice(i, i + BATCH);
     const { error } = await client.from("avaluos").upsert(batch, {
       onConflict: "no_avaluo",
     });
     if (error) throw new Error(error.message);
   }
 
-  const keep = new Set(records.map((r) => r.no_avaluo).filter(Boolean));
+  const keep = new Set(unique.map((r) => r.no_avaluo).filter(Boolean));
   const { data: existing, error: readErr } = await client
     .from("avaluos")
     .select("no_avaluo");
@@ -155,7 +160,7 @@ async function syncOnce(client, filePath) {
     if (error) throw new Error(error.message);
   }
 
-  return { inserted: records.length, deleted: toDelete.length };
+  return { inserted: unique.length, deleted: toDelete.length };
 }
 
 function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
