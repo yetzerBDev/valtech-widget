@@ -1,6 +1,48 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const http = require("http");
+
+const MIME_TYPES = {
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "text/javascript",
+  ".mjs": "text/javascript",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+  ".jpg": "image/jpeg",
+  ".webp": "image/webp",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".txt": "text/plain",
+  ".xml": "text/xml",
+};
+
+function serveStatic(rootDir) {
+  return http.createServer(async (req, res) => {
+    try {
+      let pathname = decodeURIComponent(
+        new URL(req.url, "http://127.0.0.1").pathname
+      );
+      if (pathname === "/") pathname = "/index.html";
+      const filePath = path.normalize(path.join(rootDir, pathname));
+      if (!filePath.startsWith(rootDir)) {
+        res.writeHead(403).end("Forbidden");
+        return;
+      }
+      const data = await fs.promises.readFile(filePath);
+      res.writeHead(200, {
+        "Content-Type": MIME_TYPES[path.extname(filePath).toLowerCase()] ?? "application/octet-stream",
+        "Cache-Control": "no-store",
+      });
+      res.end(data);
+    } catch {
+      res.writeHead(404).end("Not found");
+    }
+  });
+}
 
 const WIDGET_WIDTH = 360;
 const WIDGET_HEIGHT = 600;
@@ -55,7 +97,11 @@ function createWindow() {
 
   const outIndex = path.join(__dirname, "..", "out", "index.html");
   if (fs.existsSync(outIndex)) {
-    mainWindow.loadFile(outIndex);
+    const server = serveStatic(path.join(__dirname, "..", "out"));
+    server.listen(0, "127.0.0.1", () => {
+      const { port } = server.address();
+      mainWindow.loadURL(`http://127.0.0.1:${port}/`);
+    });
   } else {
     mainWindow.loadURL(process.env.ELECTRON_START_URL || "http://localhost:3000");
   }
