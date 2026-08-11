@@ -258,13 +258,43 @@ if (!gotTheLock) {
     if (app.isPackaged) {
       const { autoUpdater } = require("electron-updater");
       autoUpdater.autoDownload = true;
-      autoUpdater.autoInstallOnAppQuit = true;
+      autoUpdater.autoInstallOnAppQuit = false;
+
+      let updateDownloaded = false;
+
+      const send = (channel, payload) => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send(channel, payload);
+        }
+      };
+
+      autoUpdater.on("update-available", (info) => {
+        send("update:available", { version: info?.version ?? "" });
+      });
+      autoUpdater.on("download-progress", (progress) => {
+        send("update:progress", { percent: progress?.percent ?? 0 });
+      });
+      autoUpdater.on("update-downloaded", (info) => {
+        updateDownloaded = true;
+        send("update:downloaded", { version: info?.version ?? "" });
+      });
       autoUpdater.on("error", (error) => {
-        console.error("[autoUpdater]", error?.message ?? error);
+        send("update:error", { message: error?.message ?? String(error) });
       });
-      autoUpdater.checkForUpdates().catch((error) => {
-        console.error("[autoUpdater]", error?.message ?? error);
+
+      ipcMain.on("update:quit-and-install", () => {
+        autoUpdater.quitAndInstall();
       });
+
+      const checkForUpdates = () => {
+        if (updateDownloaded) return;
+        autoUpdater.checkForUpdates().catch((error) => {
+          console.error("[autoUpdater]", error?.message ?? error);
+        });
+      };
+
+      checkForUpdates();
+      setInterval(checkForUpdates, 30 * 60 * 1000);
     }
 
     app.on("activate", () => {

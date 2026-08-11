@@ -19,4 +19,25 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("auth:set-session", listener);
     return () => ipcRenderer.removeListener("auth:set-session", listener);
   },
+  onUpdateAvailable: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("update:available", listener);
+    return () => ipcRenderer.removeListener("update:available", listener);
+  },
+  onUpdateProgress: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("update:progress", listener);
+    return () => ipcRenderer.removeListener("update:progress", listener);
+  },
+  onUpdateDownloaded: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("update:downloaded", listener);
+    return () => ipcRenderer.removeListener("update:downloaded", listener);
+  },
+  onUpdateError: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on("update:error", listener);
+    return () => ipcRenderer.removeListener("update:error", listener);
+  },
+  quitAndInstall: () => ipcRenderer.send("update:quit-and-install"),
 });

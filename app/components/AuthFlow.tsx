@@ -10,9 +10,10 @@ import {
   Logout01Icon,
   UserCircleIcon,
   MapPinIcon,
-  MapPinCheckIcon,
+  Clock01Icon,
   CloudOffIcon,
   CloudCheckIcon,
+  Download01Icon,
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
@@ -92,10 +93,16 @@ export default function AuthFlow() {
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [widgetTab, setWidgetTab] = useState<"sin" | "con">("sin");
+  const [widgetTab, setWidgetTab] = useState<"abiertos" | "standby">("abiertos");
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
+  const [update, setUpdate] = useState<
+    | { state: "downloading"; percent: number }
+    | { state: "downloaded"; version: string }
+    | { state: "error"; message: string }
+    | null
+  >(null);
   const [avaluos, setAvaluos] = useState<Avaluo[] | null>(null);
   const [avaluosError, setAvaluosError] = useState<string | null>(null);
 
@@ -166,6 +173,25 @@ export default function AuthFlow() {
         setShowUpdateCard(true);
       }
     });
+  }, [isWidget]);
+
+  useEffect(() => {
+    if (!isWidget || !window.electronAPI?.onUpdateDownloaded) return;
+    const offs = [
+      window.electronAPI.onUpdateAvailable(() =>
+        setUpdate({ state: "downloading", percent: 0 })
+      ),
+      window.electronAPI.onUpdateProgress(({ percent }) =>
+        setUpdate((u) => (u?.state === "downloading" ? { ...u, percent } : u))
+      ),
+      window.electronAPI.onUpdateDownloaded(({ version }) =>
+        setUpdate({ state: "downloaded", version })
+      ),
+      window.electronAPI.onUpdateError(({ message }) =>
+        setUpdate({ state: "error", message })
+      ),
+    ];
+    return () => offs.forEach((off) => off?.());
   }, [isWidget]);
 
   useEffect(() => {
@@ -294,7 +320,7 @@ export default function AuthFlow() {
           </h1>
           <p className="mt-1 max-w-[32ch] text-center text-[12px] leading-relaxed text-on-surface-variant">
             Inicia sesión en la web (valtech-beta.vercel.app) y pulsa{" "}
-            <span className="font-semibold text-on-surface">"Abrir sesión en el widget"</span>.
+            <span className="font-semibold text-on-surface">&ldquo;Abrir sesión en el widget&rdquo;</span>.
             Esta ventana se conectará sola.
           </p>
           {signingIn && (
@@ -343,10 +369,19 @@ export default function AuthFlow() {
             : a.perito || a.digitador;
       return nombreNorm !== "" && normalizeNombre(col ?? "") === nombreNorm;
     };
+    const normEstatus = (s: string | null) => (s ?? "").trim().toLowerCase();
+    const esAbierto = (s: string | null) => {
+      const e = normEstatus(s);
+      return e === "abierto" || e === "abierta";
+    };
+    const esStandBy = (s: string | null) => {
+      const e = normEstatus(s);
+      return e === "standby" || e.startsWith("stand by");
+    };
     const visibles = listado.filter(esSuyo);
-    const sinVisita = visibles.filter((a) => (a.estatus ?? "").trim() !== "Cerrada");
-    const conVisita = visibles.filter((a) => (a.estatus ?? "").trim() === "Cerrada");
-    const actuales = widgetTab === "sin" ? sinVisita : conVisita;
+    const abiertos = visibles.filter((a) => esAbierto(a.estatus));
+    const standby = visibles.filter((a) => esStandBy(a.estatus));
+    const actuales = widgetTab === "abiertos" ? abiertos : standby;
     const cargando = avaluos === null && !avaluosError;
 
     return (
@@ -361,6 +396,51 @@ export default function AuthFlow() {
             priority
           />
           <div className="flex items-center gap-1.5">
+            {update && (
+              <button
+                type="button"
+                onClick={
+                  update.state === "downloaded"
+                    ? () => window.electronAPI?.quitAndInstall?.()
+                    : undefined
+                }
+                disabled={update.state !== "downloaded"}
+                title={
+                  update.state === "error"
+                    ? update.message
+                    : update.state === "downloaded"
+                      ? "Clic para instalar y reiniciar"
+                      : "Descargando actualización…"
+                }
+                className={`flex h-6 items-center gap-1 rounded-full px-2 text-[10px] font-bold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  update.state === "error"
+                    ? "bg-surface-container-high text-on-surface-variant"
+                    : update.state === "downloaded"
+                      ? "bg-primary text-white hover:bg-primary/90"
+                      : "bg-surface-container-high text-on-surface-variant"
+                }`}
+              >
+                <HugeiconsIcon
+                  icon={
+                    update.state === "downloaded"
+                      ? Download01Icon
+                      : update.state === "error"
+                        ? CloudOffIcon
+                        : Loading02Icon
+                  }
+                  size={11}
+                  strokeWidth={2}
+                  className={
+                    update.state === "downloading"
+                      ? "animate-spin motion-reduce:animate-none"
+                      : ""
+                  }
+                />
+                {update.state === "downloading"
+                  ? `${Math.round(update.percent)}%`
+                  : "Actualizar"}
+              </button>
+            )}
             {online ? (
               <span className="relative flex h-2 w-2" title="Activo">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
@@ -424,43 +504,43 @@ export default function AuthFlow() {
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "sin"}
-              onClick={() => setWidgetTab("sin")}
+              aria-selected={widgetTab === "abiertos"}
+              onClick={() => setWidgetTab("abiertos")}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "sin"
+                widgetTab === "abiertos"
                   ? "bg-primary text-white shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
               <HugeiconsIcon icon={MapPinIcon} size={13} strokeWidth={2} />
-              Sin visita
+              Abiertos
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "sin" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "abiertos" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
-                {sinVisita.length}
+                {abiertos.length}
               </span>
             </button>
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "con"}
-              onClick={() => setWidgetTab("con")}
+              aria-selected={widgetTab === "standby"}
+              onClick={() => setWidgetTab("standby")}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "con"
+                widgetTab === "standby"
                   ? "bg-primary text-white shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
-              Con visita
+              <HugeiconsIcon icon={Clock01Icon} size={13} strokeWidth={2} />
+              Stand by
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "con" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "standby" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
-                {conVisita.length}
+                {standby.length}
               </span>
             </button>
           </div>
@@ -487,18 +567,18 @@ export default function AuthFlow() {
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
                 <HugeiconsIcon
-                  icon={widgetTab === "sin" ? MapPinIcon : MapPinCheckIcon}
+                  icon={widgetTab === "abiertos" ? MapPinIcon : Clock01Icon}
                   size={20}
                   strokeWidth={1.5}
                 />
               </div>
               <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-                {widgetTab === "sin" ? "Sin visitas pendientes" : "Sin avalúos con visita"}
+                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos en stand by"}
               </h2>
               <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
-                {widgetTab === "sin"
-                  ? "Las solicitudes pendientes de visita aparecerán aquí en tiempo real."
-                  : "Los avalúos ya visitados aparecerán aquí en tiempo real."}
+                {widgetTab === "abiertos"
+                  ? "Los avalúos con estado Abierto aparecerán aquí en tiempo real."
+                  : "Los avalúos en espera aparecerán aquí en tiempo real."}
               </p>
             </div>
           ) : (
