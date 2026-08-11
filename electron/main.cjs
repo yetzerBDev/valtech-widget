@@ -49,6 +49,30 @@ const WIDGET_HEIGHT = 600;
 const MIN_WIDTH = 260;
 const MIN_HEIGHT = 360;
 const ALWAYS_ON_TOP = false;
+const OAUTH_REDIRECT_HOST = "valtech-beta.vercel.app";
+const PROTOCOL = "widgetavaluo";
+
+function handleProtocolUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== `${PROTOCOL}:`) return;
+    const accessToken = u.searchParams.get("at");
+    const refreshToken = u.searchParams.get("rt");
+    if (accessToken && refreshToken) {
+      mainWindow?.webContents.send("auth:set-session", {
+        accessToken,
+        refreshToken,
+      });
+    }
+  } catch {
+    /* URL invalida, ignorar */
+  }
+}
+
+function protocolUrlFromArgs(argv) {
+  const url = (argv ?? []).find((a) => typeof a === "string" && a.startsWith(`${PROTOCOL}://`));
+  return url;
+}
 
 let mainWindow = null;
 
@@ -93,7 +117,53 @@ function createWindow() {
     },
   });
 
-  mainWindow.once("ready-to-show", () => mainWindow.show());
+  mainWindow.once("ready-to-show", () => {
+    const url = protocolUrlFromArgs(process.argv);
+    if (url) handleProtocolUrl(url);
+    mainWindow.show();
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    let grabbed = false;
+    const authWin = new BrowserWindow({
+      width: 480,
+      height: 640,
+      parent: mainWindow,
+      modal: false,
+      autoHideMenuBar: true,
+      backgroundColor: "#ffffff",
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+      },
+    });
+    authWin.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+    authWin.webContents.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    );
+    authWin.once("ready-to-show", () => authWin.show());
+    authWin.on("closed", () => {
+      if (!grabbed) mainWindow?.webContents.send("auth:cancelled");
+    });
+    const grabCode = (navUrl) => {
+      try {
+        const u = new URL(navUrl);
+        const code = u.searchParams.get("code");
+        if (code && u.hostname === OAUTH_REDIRECT_HOST) {
+          grabbed = true;
+          mainWindow?.webContents.send("auth:oauth-code", code);
+          authWin.destroy();
+        }
+      } catch {
+        /* URL invalida, ignorar */
+      }
+    };
+    authWin.webContents.on("will-redirect", (event, navUrl) => grabCode(navUrl));
+    authWin.webContents.on("did-navigate", (_event, navUrl) => grabCode(navUrl));
+    authWin.loadURL(url);
+    return { action: "deny" };
+  });
 
   const outIndex = path.join(__dirname, "..", "out", "index.html");
   if (fs.existsSync(outIndex)) {
@@ -126,7 +196,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on("second-instance", () => {
+  app.on("second-instance", (_event, commandLine) => {
+    const url = protocolUrlFromArgs(commandLine);
+    if (url) handleProtocolUrl(url);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
@@ -136,6 +208,16 @@ if (!gotTheLock) {
 
   app.whenReady().then(() => {
     app.setAppUserModelId("com.widget.avaluo");
+
+    if (process.defaultApp) {
+      if (process.argv.length >= 2) {
+        app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [
+          path.resolve(process.argv[1]),
+        ]);
+      }
+    } else {
+      app.setAsDefaultProtocolClient(PROTOCOL);
+    }
 
     app.setLoginItemSettings({
       openAtLogin: true,

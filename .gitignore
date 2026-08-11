@@ -43,3 +43,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# datos maestros locales
+/EXCEL_MAESTRO.xlsx
+~$*
+/.env.sync

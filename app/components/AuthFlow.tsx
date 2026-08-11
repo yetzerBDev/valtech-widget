@@ -20,6 +20,59 @@ import DownloadExe from "./DownloadExe";
 const CARD_SHADOW =
   "shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)]";
 
+const HOUR_MS = 3_600_000;
+const WIDGET_OAUTH_REDIRECT = "https://valtech-beta.vercel.app/";
+
+type Avaluo = {
+  no_avaluo: string;
+  fecha_banco: string | null;
+  recibe: string | null;
+  tipo: string | null;
+  area_solicitud: string | null;
+  estatus: string | null;
+  solicitante: string | null;
+  perito: string | null;
+  digitador: string | null;
+};
+
+function normalizeNombre(v: string): string {
+  return v
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function colorEstatus(estatus: string | null): string {
+  const e = (estatus ?? "").trim().toLowerCase();
+  if (e === "abierto" || e === "abierta") return "bg-emerald-500";
+  if (e === "cerrada") return "bg-amber-400";
+  if (e === "devuelto") return "bg-neutral-400";
+  return "bg-orange-500";
+}
+
+function horasDesdeRecibe(recibe: string | null): number | null {
+  if (!recibe) return null;
+  const t = new Date(`${recibe}T00:00:00`).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / HOUR_MS);
+}
+
+function semaforo(horas: number | null) {
+  if (horas === null) return { dot: "bg-neutral-400", color: "#9ca3af" };
+  if (horas <= 24) return { dot: "bg-emerald-500", color: "#10b981" };
+  if (horas <= 48) return { dot: "bg-amber-500", color: "#f59e0b" };
+  if (horas <= 72) return { dot: "bg-orange-500", color: "#f97316" };
+  return { dot: "bg-red-500", color: "#ef4444" };
+}
+
+function etiquetaTiempo(horas: number | null): string {
+  if (horas === null) return "Sin fecha";
+  if (horas < 48) return `${horas} h`;
+  return `${Math.floor(horas / 24)} d`;
+}
+
 function GoogleLogo({ className }: { className?: string }) {
   return (
     <Image
@@ -43,6 +96,8 @@ export default function AuthFlow() {
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
+  const [avaluos, setAvaluos] = useState<Avaluo[] | null>(null);
+  const [avaluosError, setAvaluosError] = useState<string | null>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -73,6 +128,33 @@ export default function AuthFlow() {
     return () => {
       window.removeEventListener("online", updateOnline);
       window.removeEventListener("offline", updateOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    const client = supabase;
+    let cancelled = false;
+    const cargar = async () => {
+      const { data, error } = await client
+        .from("avaluos")
+        .select(
+          "no_avaluo, fecha_banco, recibe, tipo, area_solicitud, estatus, solicitante, perito, digitador"
+        )
+        .order("recibe", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        setAvaluosError(error.message);
+        return;
+      }
+      setAvaluosError(null);
+      setAvaluos((data as Avaluo[]) ?? []);
+    };
+    cargar();
+    const id = window.setInterval(cargar, 30_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
     };
   }, []);
 
@@ -139,7 +221,11 @@ export default function AuthFlow() {
     setSigningIn(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: {
+        redirectTo: isWidget
+          ? WIDGET_OAUTH_REDIRECT
+          : `${window.location.origin}/`,
+      },
     });
     if (error) {
       setAuthError(error.message);
@@ -147,15 +233,124 @@ export default function AuthFlow() {
     }
   }
 
+  useEffect(() => {
+    if (!isWidget || !window.electronAPI?.onSetSession) return;
+    const off = window.electronAPI.onSetSession(async (payload) => {
+      if (!supabase) return;
+      const { error } = await supabase.auth.setSession({
+        access_token: payload.accessToken,
+        refresh_token: payload.refreshToken,
+      });
+      if (error) setAuthError(error.message);
+    });
+    return off;
+  }, [isWidget]);
+
+  useEffect(() => {
+    if (!isWidget || !window.electronAPI?.onOAuthCode) return;
+    const offCode = window.electronAPI.onOAuthCode(async (code) => {
+      if (!supabase) return;
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (error) setAuthError(error.message);
+      setSigningIn(false);
+    });
+    const offCancel = window.electronAPI.onOAuthCancelled(() => setSigningIn(false));
+    return () => {
+      offCode();
+      offCancel();
+    };
+  }, [isWidget]);
+
   async function signOut() {
     if (!supabase) return;
     await supabase.auth.signOut();
     setUser(null);
   }
 
+  async function vincularWidget() {
+    if (!supabase) return;
+    const { data } = await supabase.auth.getSession();
+    const s = data.session;
+    if (!s) return;
+    window.location.href = `widgetavaluo://auth?at=${encodeURIComponent(
+      s.access_token
+    )}&rt=${encodeURIComponent(s.refresh_token)}`;
+  }
+
   if (isWidget) {
+    if (!user) {
+      return (
+        <main className="flex h-[100dvh] flex-col items-center justify-center bg-background px-6 text-on-background">
+          <Image
+            src="/LOGO VALTECH.png"
+            alt="Valtech"
+            width={40}
+            height={40}
+            className="h-10 w-10 object-contain"
+            priority
+          />
+          <h1 className="mt-4 text-[17px] font-bold tracking-tight text-on-surface">
+            Widget Avalúo
+          </h1>
+          <p className="mt-1 max-w-[32ch] text-center text-[12px] leading-relaxed text-on-surface-variant">
+            Inicia sesión en la web (valtech-beta.vercel.app) y pulsa{" "}
+            <span className="font-semibold text-on-surface">"Abrir sesión en el widget"</span>.
+            Esta ventana se conectará sola.
+          </p>
+          {signingIn && (
+            <p className="mt-3 flex items-center gap-2 text-[12px] text-on-surface-variant">
+              <HugeiconsIcon
+                icon={Loading02Icon}
+                size={14}
+                className="animate-spin motion-reduce:animate-none"
+              />
+              Conectando…
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={signIn}
+            disabled={signingIn || !supabase}
+            className="mt-5 flex h-10 w-full max-w-[260px] items-center justify-center gap-2 rounded-xl border border-outline-variant/70 bg-surface text-[12px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:opacity-70"
+          >
+            <GoogleLogo className="h-4 w-4" />
+            Iniciar sesión aquí
+          </button>
+          {authError && (
+            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-[11px] leading-relaxed text-red-800">
+              {authError}
+            </p>
+          )}
+          {!supabase && (
+            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-center text-[11px] leading-relaxed text-amber-800">
+              Falta configurar Supabase.
+            </p>
+          )}
+        </main>
+      );
+    }
+
+    const listado = avaluos ?? [];
+    const cargo = (perfil?.cargo ?? "").trim().toLowerCase();
+    const nombreNorm = normalizeNombre(perfil?.nombre ?? "");
+    const esSuyo = (a: Avaluo) => {
+      if (cargo === "encargado") return true;
+      const col =
+        cargo === "perito"
+          ? a.perito
+          : cargo === "digitador"
+            ? a.digitador
+            : a.perito || a.digitador;
+      return nombreNorm !== "" && normalizeNombre(col ?? "") === nombreNorm;
+    };
+    const visibles = listado.filter(esSuyo);
+    const sinVisita = visibles.filter((a) => (a.estatus ?? "").trim() !== "Cerrada");
+    const conVisita = visibles.filter((a) => (a.estatus ?? "").trim() === "Cerrada");
+    const actuales = widgetTab === "sin" ? sinVisita : conVisita;
+    const cargando = avaluos === null && !avaluosError;
+
     return (
-      <main className="flex min-h-[100dvh] flex-col bg-background px-4 pb-4 pt-7 text-on-background">
+      <main className="flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 pt-7 text-on-background">
         <header className="flex items-center justify-between">
           <Image
             src="/LOGO VALTECH.png"
@@ -165,19 +360,30 @@ export default function AuthFlow() {
             className="h-[22px] w-[22px] object-contain"
             priority
           />
-          {online ? (
-            <span className="relative flex h-2 w-2" title="Activo">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-          ) : (
-            <span
-              className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
-              title="Sin conexión"
+          <div className="flex items-center gap-1.5">
+            {online ? (
+              <span className="relative flex h-2 w-2" title="Activo">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+            ) : (
+              <span
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
+                title="Sin conexión"
+              >
+                <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} />
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={signOut}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} />
-            </span>
-          )}
+              <HugeiconsIcon icon={Logout01Icon} size={13} strokeWidth={2} />
+            </button>
+          </div>
         </header>
 
         {showUpdateCard && (
@@ -228,6 +434,13 @@ export default function AuthFlow() {
             >
               <HugeiconsIcon icon={MapPinIcon} size={13} strokeWidth={2} />
               Sin visita
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                  widgetTab === "sin" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                }`}
+              >
+                {sinVisita.length}
+              </span>
             </button>
             <button
               type="button"
@@ -242,33 +455,107 @@ export default function AuthFlow() {
             >
               <HugeiconsIcon icon={MapPinCheckIcon} size={13} strokeWidth={2} />
               Con visita
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                  widgetTab === "con" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                }`}
+              >
+                {conVisita.length}
+              </span>
             </button>
           </div>
         </section>
 
-        <section className="mt-auto flex flex-col items-center text-center">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
-            <HugeiconsIcon
-              icon={widgetTab === "sin" ? MapPinIcon : MapPinCheckIcon}
-              size={20}
-              strokeWidth={1.5}
-            />
-          </div>
-          <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-            {widgetTab === "sin" ? "Sin visitas pendientes" : "Sin avalúos con visita"}
-          </h2>
-          <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
-            {widgetTab === "sin"
-              ? "Las solicitudes pendientes de visita aparecerán aquí en tiempo real."
-              : "Los avalúos ya visitados aparecerán aquí en tiempo real."}
-          </p>
+        <section className="mt-3 min-h-0 flex-1">
+          {cargando ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+              <HugeiconsIcon
+                icon={Loading02Icon}
+                size={18}
+                strokeWidth={2}
+                className="animate-spin text-on-surface-variant motion-reduce:animate-none"
+              />
+              <p className="text-[12px] text-on-surface-variant">Cargando avalúos…</p>
+            </div>
+          ) : avaluosError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+              <p className="text-[12px] leading-relaxed text-red-800">
+                No se pudo cargar la información: {avaluosError}
+              </p>
+            </div>
+          ) : actuales.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+                <HugeiconsIcon
+                  icon={widgetTab === "sin" ? MapPinIcon : MapPinCheckIcon}
+                  size={20}
+                  strokeWidth={1.5}
+                />
+              </div>
+              <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
+                {widgetTab === "sin" ? "Sin visitas pendientes" : "Sin avalúos con visita"}
+              </h2>
+              <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
+                {widgetTab === "sin"
+                  ? "Las solicitudes pendientes de visita aparecerán aquí en tiempo real."
+                  : "Los avalúos ya visitados aparecerán aquí en tiempo real."}
+              </p>
+            </div>
+          ) : (
+            <div className="h-full overflow-y-auto pr-0.5">
+              <ul className="flex flex-col gap-2">
+                {actuales.map((a) => {
+                  const horas = horasDesdeRecibe(a.recibe);
+                  const s = semaforo(horas);
+                  return (
+                    <li
+                      key={a.no_avaluo}
+                      className="relative overflow-hidden rounded-xl border border-outline-variant/50 bg-surface p-3 shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
+                    >
+                      <span className={`absolute inset-y-0 left-0 w-1 ${colorEstatus(a.estatus)}`} />
+                      <div className="flex items-center justify-between gap-2 pl-1">
+                        <p className="min-w-0 truncate text-[12px] font-bold tracking-tight text-on-surface">
+                          {a.no_avaluo}
+                        </p>
+                        <span className="shrink-0 rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
+                          {a.estatus ?? "—"}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate pl-1 text-[11px] font-medium text-on-surface-variant">
+                        {a.solicitante ?? "—"}
+                      </p>
+                      <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
+                        <span className="truncate">{a.fecha_banco ?? "—"}</span>
+                        <span className="shrink-0 text-outline">·</span>
+                        <span className="truncate">{a.tipo ?? "—"}</span>
+                        <span className="shrink-0 text-outline">·</span>
+                        <span className="truncate">{a.area_solicitud ?? "—"}</span>
+                      </div>
+                      <div className="mt-2 flex items-center gap-1.5 pl-1">
+                        <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                        <span className="text-[10.5px] font-bold leading-none" style={{ color: s.color }}>
+                          {etiquetaTiempo(horas)}
+                        </span>
+                        <span className="text-[10.5px] leading-none text-on-surface-variant">desde recibe</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </section>
 
-        <div className="mt-auto">
+        <div className="mt-3 shrink-0">
           <div className="rounded-xl border border-outline-variant/60 bg-surface p-3">
             <p className="text-[12px] leading-relaxed text-on-surface-variant">
               Este widget se actualiza solo: minimízalo cuando quieras.
             </p>
+            {perfil?.nombre && (
+              <p className="mt-1 truncate text-[11px] font-semibold text-on-surface">
+                {perfil.nombre}
+              </p>
+            )}
           </div>
         </div>
       </main>
@@ -356,6 +643,13 @@ export default function AuthFlow() {
 
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
+                  <button
+                    type="button"
+                    onClick={vincularWidget}
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[14px] font-semibold text-white transition-[transform,box-shadow,opacity] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-70"
+                  >
+                    Abrir sesión en el widget
+                  </button>
                   <p className="mt-1 px-2 text-center text-[13px] font-medium leading-relaxed text-outline">
                     Descarga e instala el widget para tener tus avalúos siempre a la vista en Windows.
                   </p>
