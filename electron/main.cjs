@@ -169,10 +169,20 @@ function createWindow() {
   const outIndex = path.join(__dirname, "..", "out", "index.html");
   if (fs.existsSync(outIndex)) {
     const server = serveStatic(path.join(__dirname, "..", "out"));
-    server.listen(0, "127.0.0.1", () => {
-      const { port } = server.address();
-      mainWindow.loadURL(`http://127.0.0.1:${port}/`);
+    const FIXED_PORT = 39123;
+    const listen = (port) => {
+      server.listen(port, "127.0.0.1", () => {
+        const { port: actual } = server.address();
+        mainWindow.loadURL(`http://127.0.0.1:${actual}/`);
+      });
+    };
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        server.removeAllListeners("error");
+        listen(0);
+      }
     });
+    listen(FIXED_PORT);
   } else {
     mainWindow.loadURL(process.env.ELECTRON_START_URL || "http://localhost:3000");
   }
