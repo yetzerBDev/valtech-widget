@@ -449,16 +449,12 @@ export default function AuthFlow() {
       const e = normEstatus(s);
       if (!e) return true;
       return (
+        e.includes("stand") ||
         e === "cerrado" ||
         e === "cerrada" ||
-        e === "cotizado" ||
-        e === "cotizada" ||
+        e.includes("cotiz") ||
         e === "devuelto" ||
         e === "devuelta" ||
-        e === "standby" ||
-        e === "stand by" ||
-        e === "stand-by" ||
-        e === "stand_by" ||
         e === "0"
       );
     };
