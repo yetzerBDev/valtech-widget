@@ -5,7 +5,7 @@ import { Download01Icon } from "@hugeicons/core-free-icons";
 
 const EXE_URL =
   process.env.NEXT_PUBLIC_EXE_URL ??
-  "https://github.com/yetzerBDev/valtech-widget/releases/download/v0.1.17/widget-avaluo-setup-0.1.17.exe";
+  "https://github.com/yetzerBDev/valtech-widget/releases/download/v0.1.18/widget-avaluo-setup-0.1.18.exe";
 
 export default function DownloadExe() {
   return (

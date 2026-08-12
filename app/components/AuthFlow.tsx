@@ -455,14 +455,24 @@ export default function AuthFlow() {
         e === "cotizada" ||
         e === "devuelto" ||
         e === "devuelta" ||
+        e === "standby" ||
+        e === "stand by" ||
+        e === "stand-by" ||
+        e === "stand_by" ||
         e === "0"
       );
+    };
+    const es2026OMas = (a: Avaluo) => {
+      const f = a.fecha_banco;
+      if (!f) return false;
+      const y = Number(f.slice(0, 4));
+      return !Number.isNaN(y) && y >= 2026;
     };
     const tieneVisita = (a: Avaluo) => {
       const v = a.fecha_envio_visita;
       return v != null && v.trim() !== "";
     };
-    const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus));
+    const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus) && es2026OMas(a));
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
     const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
