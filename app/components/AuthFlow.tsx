@@ -453,6 +453,7 @@ export default function AuthFlow() {
         e === "cerrado" ||
         e === "cerrada" ||
         e.includes("cotiz") ||
+        e.includes("doctos") ||
         e === "devuelto" ||
         e === "devuelta" ||
         e === "0"
