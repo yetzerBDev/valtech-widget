@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import Logo from "./Logo";
 
 export function LegalSection({
   title,
@@ -35,9 +35,7 @@ export default function LegalLayout({
       <div className="mx-auto w-full max-w-[860px] rounded-2xl bg-surface p-7 shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)] sm:p-10">
         <header className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image
-              src="/LOGO VALTECH BLANCO.png"
-              alt="Valtech"
+            <Logo
               width={32}
               height={32}
               className="h-8 w-8 object-contain"

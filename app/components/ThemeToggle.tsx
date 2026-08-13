@@ -1,25 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Moon01Icon, Sun01Icon } from "@hugeicons/core-free-icons";
-
-const THEME_KEY = "valtech-theme";
-
-export function getInitialTheme(): "dark" | "light" {
-  if (typeof window === "undefined") return "dark";
-  const saved = window.localStorage.getItem(THEME_KEY);
-  if (saved === "light" || saved === "dark") return saved;
-  return "dark";
-}
+import { useTheme } from "../lib/use-theme";
 
 export default function ThemeToggle({ size = 13 }: { size?: number }) {
-  const [theme, setTheme] = useState<"dark" | "light">(getInitialTheme);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem(THEME_KEY, theme);
-  }, [theme]);
+  const [theme, setTheme] = useTheme();
 
   const next = theme === "dark" ? "light" : "dark";
   return (

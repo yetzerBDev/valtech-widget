@@ -20,6 +20,7 @@ import {
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 const CARD_SHADOW =
   "shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)]";
@@ -390,9 +391,7 @@ export default function AuthFlow() {
     if (!user) {
       return (
         <main className="flex h-[100dvh] flex-col items-center justify-center bg-background px-6 text-on-background">
-          <Image
-            src="/LOGO VALTECH BLANCO.png"
-            alt="Valtech"
+          <Logo
             width={40}
             height={40}
             className="h-10 w-10 object-contain"
@@ -492,9 +491,7 @@ export default function AuthFlow() {
     return (
       <main className="flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 pt-7 text-on-background">
         <header className="flex items-center justify-between">
-          <Image
-            src="/LOGO VALTECH BLANCO.png"
-            alt="Valtech"
+          <Logo
             width={22}
             height={22}
             className="h-[22px] w-[22px] object-contain"
@@ -968,9 +965,7 @@ export default function AuthFlow() {
         <header className="sticky top-0 z-50 w-full border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-4 md:px-12">
             <div className="flex items-center gap-3">
-              <Image
-                src="/LOGO VALTECH BLANCO.png"
-                alt="Valtech"
+              <Logo
                 width={32}
                 height={32}
                 className="h-8 w-auto object-contain"
@@ -1055,9 +1050,7 @@ export default function AuthFlow() {
   const content = (
     <div className={`w-full max-w-[380px] rounded-2xl border border-outline-variant/40 bg-surface px-7 py-9 ${CARD_SHADOW}`}>
       <div className="flex flex-col items-center text-center">
-        <Image
-          src="/LOGO VALTECH BLANCO.png"
-          alt="Valtech"
+        <Logo
           width={56}
           height={56}
           className="h-14 w-14 object-contain"
