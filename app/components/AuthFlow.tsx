@@ -19,6 +19,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
+import ThemeToggle from "./ThemeToggle";
 
 const CARD_SHADOW =
   "shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)]";
@@ -569,6 +570,7 @@ export default function AuthFlow() {
                 <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} className="text-red-500" />
               </span>
             )}
+            <ThemeToggle />
             <button
               type="button"
               onClick={signOut}
@@ -978,14 +980,17 @@ export default function AuthFlow() {
                 Valtech
               </span>
             </div>
-            <button
-              type="button"
-              onClick={signOut}
-              className="flex items-center gap-2 text-[14px] font-semibold text-on-surface-variant opacity-80 transition-colors duration-200 hover:text-primary hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              Salir
-              <HugeiconsIcon icon={Logout01Icon} size={20} />
-            </button>
+            <div className="flex items-center gap-3">
+              <ThemeToggle size={18} />
+              <button
+                type="button"
+                onClick={signOut}
+                className="flex items-center gap-2 text-[14px] font-semibold text-on-surface-variant opacity-80 transition-colors duration-200 hover:text-primary hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                Salir
+                <HugeiconsIcon icon={Logout01Icon} size={20} />
+              </button>
+            </div>
           </div>
         </header>
 

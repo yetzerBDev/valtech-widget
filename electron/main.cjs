@@ -339,7 +339,7 @@ if (!gotTheLock) {
     if (app.isPackaged) {
       const { autoUpdater } = require("electron-updater");
       autoUpdater.autoDownload = true;
-      autoUpdater.autoInstallOnAppQuit = false;
+      autoUpdater.autoInstallOnAppQuit = true;
 
       let updateDownloaded = false;
 
