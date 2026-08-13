@@ -65,18 +65,26 @@ function toCleanString(v) {
 
 function toCleanDate(v) {
   if (v === null || v === undefined) return null;
+  let iso = null;
   if (v instanceof Date && !isNaN(v.getTime())) {
-    return v.toISOString().slice(0, 10);
-  }
-  if (typeof v === "number" && isFinite(v)) {
+    iso = v.toISOString().slice(0, 10);
+  } else if (typeof v === "number" && isFinite(v)) {
     const d = excelSerialToDate(v);
-    return d ? d.toISOString().slice(0, 10) : null;
+    iso = d ? d.toISOString().slice(0, 10) : null;
+  } else {
+    const s = toCleanString(v);
+    if (s) {
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime())) iso = parsed.toISOString().slice(0, 10);
+    }
   }
-  const s = toCleanString(v);
-  if (!s) return null;
-  const parsed = new Date(s);
-  if (isNaN(parsed.getTime())) return null;
-  return parsed.toISOString().slice(0, 10);
+  // Excel guarda celdas de fecha vacias como serial 0 -> 30/12/1899.
+  // Fechas antes del 2000 no son reales: se tratan como vacio.
+  if (iso) {
+    const y = Number(iso.slice(0, 4));
+    if (Number.isNaN(y) || y < 2000) iso = null;
+  }
+  return iso;
 }
 
 function toCleanNumber(v) {
