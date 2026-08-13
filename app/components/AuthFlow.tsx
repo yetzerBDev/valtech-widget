@@ -390,7 +390,7 @@ export default function AuthFlow() {
       return (
         <main className="flex h-[100dvh] flex-col items-center justify-center bg-background px-6 text-on-background">
           <Image
-            src="/LOGO VALTECH.png"
+            src="/LOGO VALTECH BLANCO.png"
             alt="Valtech"
             width={40}
             height={40}
@@ -425,12 +425,12 @@ export default function AuthFlow() {
             Iniciar sesión aquí
           </button>
           {authError && (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-[11px] leading-relaxed text-red-800">
+            <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-center text-[11px] leading-relaxed text-red-400">
               {authError}
             </p>
           )}
           {!supabase && (
-            <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-center text-[11px] leading-relaxed text-amber-800">
+            <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-center text-[11px] leading-relaxed text-amber-400">
               Falta configurar Supabase.
             </p>
           )}
@@ -492,7 +492,7 @@ export default function AuthFlow() {
       <main className="flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 pt-7 text-on-background">
         <header className="flex items-center justify-between">
           <Image
-            src="/LOGO VALTECH.png"
+            src="/LOGO VALTECH BLANCO.png"
             alt="Valtech"
             width={22}
             height={22}
@@ -531,7 +531,7 @@ export default function AuthFlow() {
                   update.state === "error"
                     ? "bg-surface-container-high text-on-surface-variant"
                     : update.state === "downloaded"
-                      ? "bg-primary text-white hover:bg-primary/90"
+                      ? "bg-primary text-on-primary hover:bg-primary/90"
                       : "bg-surface-container-high text-on-surface-variant"
                 }`}
               >
@@ -583,7 +583,7 @@ export default function AuthFlow() {
 
         {showUpdateCard && (
           <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-primary/15 bg-primary/5 p-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary">
               <HugeiconsIcon icon={CloudCheckIcon} size={13} strokeWidth={2} />
             </span>
             <div className="min-w-0 flex-1">
@@ -626,14 +626,14 @@ export default function AuthFlow() {
               }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 widgetTab === "abiertos"
-                  ? "bg-primary text-white shadow-sm"
+                  ? "bg-primary text-on-primary shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
               Abiertos
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "abiertos" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "abiertos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
                 {abiertos.length}
@@ -649,14 +649,14 @@ export default function AuthFlow() {
               }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 widgetTab === "convisita"
-                  ? "bg-primary text-white shadow-sm"
+                  ? "bg-primary text-on-primary shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
               Con visita
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "convisita" ? "bg-white/25 text-white" : "bg-surface-container-highest text-on-surface-variant"
+                  widgetTab === "convisita" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
                 }`}
               >
                 {conVisita.length}
@@ -689,8 +689,8 @@ export default function AuthFlow() {
               <p className="text-[12px] text-on-surface-variant">Cargando avalúos…</p>
             </div>
           ) : avaluosError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-              <p className="text-[12px] leading-relaxed text-red-800">
+            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+              <p className="text-[12px] leading-relaxed text-red-400">
                 No se pudo cargar la información: {avaluosError}
               </p>
             </div>
@@ -925,7 +925,7 @@ export default function AuthFlow() {
                   type="button"
                   onClick={guardarSync}
                   disabled={savingSync}
-                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-semibold text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60"
+                  className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-semibold text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60"
                 >
                   {savingSync ? (
                     <HugeiconsIcon
@@ -967,7 +967,7 @@ export default function AuthFlow() {
           <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-4 md:px-12">
             <div className="flex items-center gap-3">
               <Image
-                src="/LOGO VALTECH.png"
+                src="/LOGO VALTECH BLANCO.png"
                 alt="Valtech"
                 width={32}
                 height={32}
@@ -1031,7 +1031,7 @@ export default function AuthFlow() {
                   <button
                     type="button"
                     onClick={vincularWidget}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[14px] font-semibold text-white transition-[transform,box-shadow,opacity] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-70"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-[14px] font-semibold text-on-primary transition-[transform,box-shadow,opacity] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(0,0,0,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-70"
                   >
                     Abrir sesión en el widget
                   </button>
@@ -1048,20 +1048,20 @@ export default function AuthFlow() {
   }
 
   const content = (
-    <div className={`w-full max-w-[380px] rounded-2xl bg-white px-7 py-9 ${CARD_SHADOW}`}>
+    <div className={`w-full max-w-[380px] rounded-2xl border border-outline-variant/40 bg-surface px-7 py-9 ${CARD_SHADOW}`}>
       <div className="flex flex-col items-center text-center">
         <Image
-          src="/LOGO VALTECH.png"
+          src="/LOGO VALTECH BLANCO.png"
           alt="Valtech"
           width={56}
           height={56}
           className="h-14 w-14 object-contain"
           priority
         />
-        <h2 className="mt-5 text-[26px] font-semibold leading-[1.15] tracking-tight text-zinc-900">
+        <h2 className="mt-5 text-[26px] font-semibold leading-[1.15] tracking-tight text-on-surface">
           Bienvenido
         </h2>
-        <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed text-zinc-600">
+        <p className="mt-2 max-w-[34ch] text-[14px] leading-relaxed text-on-surface-variant">
           Inicia sesión con tu cuenta de Google para consultar tus avalúos.
         </p>
       </div>
@@ -1070,7 +1070,7 @@ export default function AuthFlow() {
         type="button"
         onClick={signIn}
         disabled={signingIn || !supabase}
-        className="mt-7 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-zinc-900 text-[15px] font-medium text-white transition-[transform,box-shadow,opacity] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(24,24,27,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-70 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+        className="mt-7 flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-primary text-[15px] font-medium text-on-primary transition-[transform,box-shadow,opacity] duration-150 ease-out hover:-translate-y-px hover:shadow-[0_10px_24px_-12px_rgba(24,24,27,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-70 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       >
         {signingIn ? (
           <HugeiconsIcon
@@ -1085,18 +1085,18 @@ export default function AuthFlow() {
       </button>
 
       {authError && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-[12px] leading-relaxed text-red-800">
+        <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-center text-[12px] leading-relaxed text-red-400">
           {authError}
         </p>
       )}
 
       {!supabase && (
-        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-center text-[12px] leading-relaxed text-amber-800">
+        <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-center text-[12px] leading-relaxed text-amber-400">
           Falta configurar Supabase para el acceso con Google. Agrega tus claves en .env.local.
         </p>
       )}
 
-      <p className="mt-5 text-center text-[12px] leading-relaxed text-zinc-500">
+      <p className="mt-5 text-center text-[12px] leading-relaxed text-on-surface-variant">
         Al continuar aceptas los{" "}
         <Link href="/terminos" className="font-medium text-brand hover:underline">
           términos

@@ -11,10 +11,10 @@ export function LegalSection({
 }) {
   return (
     <section>
-      <h2 className="text-[16px] font-semibold tracking-tight text-zinc-900">
+      <h2 className="text-[16px] font-semibold tracking-tight text-on-surface">
         {title}
       </h2>
-      <div className="mt-2 flex flex-col gap-3 text-[14px] leading-relaxed text-zinc-600">
+      <div className="mt-2 flex flex-col gap-3 text-[14px] leading-relaxed text-on-surface-variant">
         {children}
       </div>
     </section>
@@ -31,18 +31,18 @@ export default function LegalLayout({
   children: ReactNode;
 }) {
   return (
-    <main className="min-h-[100dvh] bg-zinc-100 px-6 py-10">
-      <div className="mx-auto w-full max-w-[860px] rounded-2xl bg-white p-7 shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)] sm:p-10">
+    <main className="min-h-[100dvh] bg-background px-6 py-10">
+      <div className="mx-auto w-full max-w-[860px] rounded-2xl bg-surface p-7 shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)] sm:p-10">
         <header className="flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5">
             <Image
-              src="/LOGO VALTECH.png"
+              src="/LOGO VALTECH BLANCO.png"
               alt="Valtech"
               width={32}
               height={32}
               className="h-8 w-8 object-contain"
             />
-            <span className="text-[15px] font-semibold tracking-tight text-zinc-900">
+            <span className="text-[15px] font-semibold tracking-tight text-on-surface">
               Valtech
             </span>
           </Link>
@@ -55,10 +55,10 @@ export default function LegalLayout({
         </header>
 
         <div className="mt-8">
-          <h1 className="text-balance text-2xl font-semibold tracking-tight text-zinc-900">
+          <h1 className="text-balance text-2xl font-semibold tracking-tight text-on-surface">
             {title}
           </h1>
-          <p className="mt-2 text-[13px] text-zinc-500">
+          <p className="mt-2 text-[13px] text-on-surface-variant">
             Última actualización: {updated}
           </p>
         </div>
