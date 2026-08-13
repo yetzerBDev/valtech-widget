@@ -23,8 +23,10 @@ function loadEnv(file) {
 }
 
 const env = loadEnv(".env.local");
-const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
-const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY;
+const envSync = loadEnv(".env.sync");
+const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL || envSync.SUPABASE_URL;
+const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || envSync.SUPABASE_ANON_KEY;
+const serviceRoleKey = envSync.SERVICE_ROLE_KEY || env.SERVICE_ROLE_KEY;
 
 if (!url || !key) {
   console.error("Faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY en .env.local");
@@ -34,6 +36,14 @@ if (!url || !key) {
 const out = path.join(ROOT, "electron", "supabase-config.cjs");
 fs.writeFileSync(
   out,
-  `module.exports = ${JSON.stringify({ supabaseUrl: url, anonKey: key }, null, 2)};\n`
+  `module.exports = ${JSON.stringify(
+    {
+      supabaseUrl: url,
+      anonKey: key,
+      serviceRoleKey: serviceRoleKey || null,
+    },
+    null,
+    2
+  )};\n`
 );
 console.log(`Config escrita en ${out}`);

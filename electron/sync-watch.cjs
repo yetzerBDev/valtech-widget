@@ -179,7 +179,7 @@ async function syncOnce(client, filePath) {
   return { inserted: unique.length, deleted: toDelete.length };
 }
 
-function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
+function startSync({ supabaseUrl, anonKey, serviceRoleKey, excelPath, onLog }) {
   const log = (msg) => onLog?.(msg);
   if (!excelPath) {
     log("[sync] sin ruta de Excel configurada");
@@ -189,7 +189,9 @@ function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
     log(`[sync] Excel no encontrado, pendiente: ${excelPath}`);
   }
 
-  const client = createClient(supabaseUrl, anonKey, {
+  // Con RLS activa, el sync usa service_role para poder escribir/borrar;
+  // sin esa clave cae al anon (funciona mientras RLS este desactivado).
+  const writeClient = createClient(supabaseUrl, serviceRoleKey || anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
@@ -215,7 +217,7 @@ function startSync({ supabaseUrl, anonKey, excelPath, onLog }) {
     lastMtime = mtime;
     syncing = true;
     try {
-      const { inserted, deleted } = await syncOnce(client, excelPath);
+      const { inserted, deleted } = await syncOnce(writeClient, excelPath);
       log(
         `[sync] ${new Date().toISOString()} sincronizado: ${inserted} avaluos, ${deleted} eliminados`
       );
