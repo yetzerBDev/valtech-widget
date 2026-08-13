@@ -130,6 +130,8 @@ export default function AuthFlow() {
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
+  const [pagina, setPagina] = useState(0);
+  const POR_PAGINA = 10;
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
@@ -477,7 +479,13 @@ export default function AuthFlow() {
     const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus) && es2026OMas(a));
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
-    const actuales = widgetTab === "abiertos" ? abiertos : conVisita;
+    const todosActuales = widgetTab === "abiertos" ? abiertos : conVisita;
+    const totalPaginas = Math.max(1, Math.ceil(todosActuales.length / POR_PAGINA));
+    const paginaSegura = Math.min(pagina, totalPaginas - 1);
+    const actuales = todosActuales.slice(
+      paginaSegura * POR_PAGINA,
+      (paginaSegura + 1) * POR_PAGINA
+    );
     const cargando = avaluos === null && !avaluosError;
 
     return (
@@ -612,7 +620,10 @@ export default function AuthFlow() {
               type="button"
               role="tab"
               aria-selected={widgetTab === "abiertos"}
-              onClick={() => setWidgetTab("abiertos")}
+              onClick={() => {
+                setWidgetTab("abiertos");
+                setPagina(0);
+              }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 widgetTab === "abiertos"
                   ? "bg-primary text-white shadow-sm"
@@ -632,7 +643,10 @@ export default function AuthFlow() {
               type="button"
               role="tab"
               aria-selected={widgetTab === "convisita"}
-              onClick={() => setWidgetTab("convisita")}
+              onClick={() => {
+                setWidgetTab("convisita");
+                setPagina(0);
+              }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                 widgetTab === "convisita"
                   ? "bg-primary text-white shadow-sm"
@@ -728,6 +742,19 @@ export default function AuthFlow() {
                         <span className="shrink-0 text-outline">·</span>
                         <span className="truncate">{a.area_solicitud ?? "—"}</span>
                       </div>
+                      {cargo === "encargado" && (
+                        <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
+                          <span className="truncate">
+                            <span className="font-bold text-on-surface">Perito:</span>{" "}
+                            {a.perito ?? "—"}
+                          </span>
+                          <span className="shrink-0 text-outline">·</span>
+                          <span className="truncate">
+                            <span className="font-bold text-on-surface">Digitador:</span>{" "}
+                            {a.digitador ?? "—"}
+                          </span>
+                        </div>
+                      )}
                       {cargo === "encargado" ? (
                         <>
                           <LineaTiempo
@@ -762,6 +789,35 @@ export default function AuthFlow() {
                   );
                 })}
               </ul>
+            </div>
+          )}
+          {!cargando && !avaluosError && !(!online || (avaluosError && avaluosError.includes("Failed to fetch"))) && totalPaginas > 1 && (
+            <div className="mt-2 flex shrink-0 items-center justify-between gap-2 border-t border-outline-variant/40 pt-2">
+              <button
+                type="button"
+                onClick={() => setPagina((p) => Math.max(0, p - 1))}
+                disabled={paginaSegura === 0}
+                className="flex h-7 items-center gap-1 rounded-lg bg-surface-container-high px-2.5 text-[11px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
+              >
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+                Anterior
+              </button>
+              <span className="text-[11px] font-semibold text-on-surface-variant">
+                {paginaSegura + 1} / {totalPaginas}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
+                disabled={paginaSegura >= totalPaginas - 1}
+                className="flex h-7 items-center gap-1 rounded-lg bg-surface-container-high px-2.5 text-[11px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
+              >
+                Siguiente
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
             </div>
           )}
         </section>
