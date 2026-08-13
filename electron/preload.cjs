@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("auth:set-session", listener);
     return () => ipcRenderer.removeListener("auth:set-session", listener);
   },
+  getPendingSession: () => ipcRenderer.invoke("auth:get-pending-session"),
   onUpdateAvailable: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("update:available", listener);

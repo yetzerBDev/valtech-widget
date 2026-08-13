@@ -45,6 +45,8 @@ function serveStatic(rootDir) {
   });
 }
 
+let pendingSession = null;
+
 const WIDGET_WIDTH = 360;
 const WIDGET_HEIGHT = 600;
 const MIN_WIDTH = 260;
@@ -60,10 +62,13 @@ function handleProtocolUrl(url) {
     const accessToken = u.searchParams.get("at");
     const refreshToken = u.searchParams.get("rt");
     if (accessToken && refreshToken) {
-      mainWindow?.webContents.send("auth:set-session", {
-        accessToken,
-        refreshToken,
-      });
+      const payload = { accessToken, refreshToken };
+      pendingSession = payload;
+      try {
+        mainWindow?.webContents.send("auth:set-session", payload);
+      } catch {
+        /* el renderer aun no esta listo; se entrega via auth:get-pending-session */
+      }
     }
   } catch {
     /* URL invalida, ignorar */
@@ -76,6 +81,7 @@ function protocolUrlFromArgs(argv) {
 }
 
 let mainWindow = null;
+let isQuitting = false;
 
 function boundsFile() {
   return path.join(app.getPath("userData"), "window-bounds.json");
@@ -188,6 +194,7 @@ function createWindow() {
   }
 
   mainWindow.on("close", (event) => {
+    if (isQuitting) return;
     event.preventDefault();
     mainWindow.minimize();
   });
@@ -238,6 +245,11 @@ if (!gotTheLock) {
     ipcMain.on("window:minimize", () => mainWindow?.minimize());
     ipcMain.handle("window:get-size", () => mainWindow?.getSize());
     ipcMain.handle("app:get-version", () => app.getVersion());
+    ipcMain.handle("auth:get-pending-session", () => {
+      const s = pendingSession;
+      pendingSession = null;
+      return s;
+    });
 
     const configPath = path.join(app.getPath("userData"), "config.json");
 
@@ -299,9 +311,14 @@ if (!gotTheLock) {
     ipcMain.handle("config:set", (_event, payload) => {
       const cfg = readConfig();
       const next = { ...cfg, ...(payload ?? {}) };
-      if (next.excelPath) {
-        writeConfig(next);
-        startSyncWatcher(next.excelPath);
+      if (typeof next.excelPath === "string") {
+        if (next.excelPath.trim() !== "") {
+          writeConfig(next);
+        } else {
+          delete next.excelPath;
+          writeConfig(next);
+        }
+        startSyncWatcher(next.excelPath || undefined);
       }
       return next;
     });
@@ -362,11 +379,16 @@ if (!gotTheLock) {
     }
 
     app.on("activate", () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+      if (!isQuitting && BrowserWindow.getAllWindows().length === 0) createWindow();
     });
   });
 
+  app.on("before-quit", () => {
+    isQuitting = true;
+  });
+
   app.on("window-all-closed", () => {
+    if (isQuitting) return;
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 }

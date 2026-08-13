@@ -104,10 +104,12 @@ function findHeaderRow(rows) {
 function parseWorkbook(filePath) {
   const wb = XLSX.readFile(filePath, { cellDates: true });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) return [];
+  if (!ws) throw new Error("El libro no tiene hojas");
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
   const headerIdx = findHeaderRow(rows);
-  if (headerIdx === null) return [];
+  if (headerIdx === null) {
+    throw new Error("No se encontro la fila de encabezados (buscando 'No. Avalúo')");
+  }
   const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
   const colMap = [];
   headers.forEach((h, idx) => {
@@ -144,6 +146,12 @@ async function syncOnce(client, filePath) {
     if (r.no_avaluo) uniq.set(r.no_avaluo, r);
   }
   const unique = [...uniq.values()];
+  // Salvaguarda: si el Excel no trae registros validos, abortar en vez de
+  // borrar la base entera (evita perdida de datos ante un archivo corrupto
+  // o con estructura inesperada).
+  if (unique.length === 0) {
+    throw new Error("El Excel no trae registros validos (No. Avalúo); sincronizacion cancelada");
+  }
   const BATCH = 400;
   for (let i = 0; i < unique.length; i += BATCH) {
     const batch = unique.slice(i, i + BATCH);

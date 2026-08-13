@@ -11,6 +11,10 @@ declare global {
       onSetSession: (
         callback: (payload: { accessToken: string; refreshToken: string }) => void
       ) => () => void;
+      getPendingSession: () => Promise<{
+        accessToken: string;
+        refreshToken: string;
+      } | null>;
       onUpdateAvailable: (callback: (payload: { version: string }) => void) => () => void;
       onUpdateProgress: (callback: (payload: { percent: number }) => void) => () => void;
       onUpdateDownloaded: (callback: (payload: { version: string }) => void) => () => void;

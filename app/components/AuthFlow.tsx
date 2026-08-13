@@ -312,14 +312,19 @@ export default function AuthFlow() {
 
   useEffect(() => {
     if (!isWidget || !window.electronAPI?.onSetSession) return;
-    const off = window.electronAPI.onSetSession(async (payload) => {
-      if (!supabase) return;
+    const setFrom = async (payload: { accessToken: string; refreshToken: string }) => {
+      if (!supabase || !payload?.accessToken || !payload?.refreshToken) return;
       const { error } = await supabase.auth.setSession({
         access_token: payload.accessToken,
         refresh_token: payload.refreshToken,
       });
       if (error) setAuthError(error.message);
-    });
+    };
+    const off = window.electronAPI.onSetSession(setFrom);
+    window.electronAPI
+      .getPendingSession?.()
+      .then((p) => p && setFrom(p))
+      .catch(() => {});
     return off;
   }, [isWidget]);
 
@@ -359,7 +364,7 @@ export default function AuthFlow() {
     setSavingSync(true);
     const trimmed = excelPathInput.trim();
     try {
-      await window.electronAPI.setConfig({ excelPath: trimmed || undefined });
+      await window.electronAPI.setConfig({ excelPath: trimmed });
       setExcelPathInput(trimmed);
       setSyncLog((l) => [
         ...l.slice(-8),
@@ -461,7 +466,7 @@ export default function AuthFlow() {
     };
     const es2026OMas = (a: Avaluo) => {
       const f = a.fecha_banco;
-      if (!f) return false;
+      if (!f) return true;
       const y = Number(f.slice(0, 4));
       return !Number.isNaN(y) && y >= 2026;
     };
@@ -549,11 +554,11 @@ export default function AuthFlow() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
             ) : (
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant"
-                title="Sin conexión"
-              >
-                <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} />
+              <span className="flex items-center gap-1" title="Sin conexión">
+                <span className="relative flex h-2 w-2">
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+                <HugeiconsIcon icon={CloudOffIcon} size={13} strokeWidth={2} className="text-red-500" />
               </span>
             )}
             <button
@@ -647,7 +652,19 @@ export default function AuthFlow() {
         </section>
 
         <section className="mt-3 min-h-0 flex-1">
-          {cargando ? (
+          {!online || (avaluosError && avaluosError.includes("Failed to fetch")) ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-red-500">
+                <HugeiconsIcon icon={CloudOffIcon} size={20} strokeWidth={1.5} />
+              </div>
+              <h2 className="mt-1 text-[14px] font-bold tracking-tight text-on-surface">
+                Sin conexión
+              </h2>
+              <p className="max-w-[28ch] text-[12px] leading-relaxed text-on-surface-variant">
+                No hay conexión a internet. Los avalúos aparecerán automáticamente cuando te vuelvas a conectar.
+              </p>
+            </div>
+          ) : cargando ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
               <HugeiconsIcon
                 icon={Loading02Icon}
@@ -705,7 +722,7 @@ export default function AuthFlow() {
                         {a.solicitante ?? "—"}
                       </p>
                       <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
-                        <span className="truncate">{a.fecha_banco ?? "—"}</span>
+                        <span className="truncate">{formatFecha(a.fecha_banco)}</span>
                         <span className="shrink-0 text-outline">·</span>
                         <span className="truncate">{a.tipo ?? "—"}</span>
                         <span className="shrink-0 text-outline">·</span>
