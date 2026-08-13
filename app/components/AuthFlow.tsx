@@ -665,9 +665,9 @@ export default function AuthFlow() {
           </div>
         </section>
 
-        <section className="mt-3 min-h-0 flex-1">
+        <section className="mt-3 flex min-h-0 flex-1 flex-col">
           {!online || (avaluosError && avaluosError.includes("Failed to fetch")) ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-red-500">
                 <HugeiconsIcon icon={CloudOffIcon} size={20} strokeWidth={1.5} />
               </div>
@@ -679,7 +679,7 @@ export default function AuthFlow() {
               </p>
             </div>
           ) : cargando ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
               <HugeiconsIcon
                 icon={Loading02Icon}
                 size={18}
@@ -695,7 +695,7 @@ export default function AuthFlow() {
               </p>
             </div>
           ) : actuales.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center text-center">
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
                 <HugeiconsIcon
                   icon={widgetTab === "abiertos" ? MapPinIcon : MapPinCheckIcon}
@@ -713,7 +713,7 @@ export default function AuthFlow() {
               </p>
             </div>
           ) : (
-            <div className="h-full overflow-y-auto pr-0.5">
+            <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
               <ul className="flex flex-col gap-2">
                 {actuales.map((a) => {
                   const horasPerito = horasDesde(a.fecha_envio_perito);
@@ -792,29 +792,29 @@ export default function AuthFlow() {
             </div>
           )}
           {!cargando && !avaluosError && !(!online || (avaluosError && avaluosError.includes("Failed to fetch"))) && totalPaginas > 1 && (
-            <div className="mt-2 flex shrink-0 items-center justify-between gap-2 border-t border-outline-variant/40 pt-2">
+            <div className="mt-2 flex shrink-0 items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => setPagina((p) => Math.max(0, p - 1))}
                 disabled={paginaSegura === 0}
-                className="flex h-7 items-center gap-1 rounded-lg bg-surface-container-high px-2.5 text-[11px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
+                aria-label="Página anterior"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
               >
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
-                Anterior
               </button>
               <span className="text-[11px] font-semibold text-on-surface-variant">
-                {paginaSegura + 1} / {totalPaginas}
+                {paginaSegura + 1} de {totalPaginas}
               </span>
               <button
                 type="button"
                 onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
                 disabled={paginaSegura >= totalPaginas - 1}
-                className="flex h-7 items-center gap-1 rounded-lg bg-surface-container-high px-2.5 text-[11px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
+                aria-label="Página siguiente"
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
               >
-                Siguiente
-                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 6l6 6-6 6" />
                 </svg>
               </button>
