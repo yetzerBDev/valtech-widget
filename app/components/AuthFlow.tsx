@@ -792,7 +792,7 @@ export default function AuthFlow() {
             </div>
           )}
           {!cargando && !avaluosError && !(!online || (avaluosError && avaluosError.includes("Failed to fetch"))) && totalPaginas > 1 && (
-            <div className="mt-2 flex shrink-0 items-center justify-center gap-3">
+            <div className="mt-2 flex shrink-0 items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setPagina((p) => Math.max(0, p - 1))}
