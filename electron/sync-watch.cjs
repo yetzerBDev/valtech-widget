@@ -103,8 +103,21 @@ function findHeaderRow(rows) {
 
 function parseWorkbook(filePath) {
   const wb = XLSX.readFile(filePath, { cellDates: true });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) throw new Error("El libro no tiene hojas");
+  // No asumir que la hoja es la primera: el encargado puede tener una portada
+  // o instrucciones al inicio. Se elige la primera hoja que tenga el encabezado
+  // "No. Avalúo".
+  let ws = null;
+  let sheetName = null;
+  for (const name of wb.SheetNames) {
+    const sheet = wb.Sheets[name];
+    const probe = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+    if (findHeaderRow(probe) !== null) {
+      ws = sheet;
+      sheetName = name;
+      break;
+    }
+  }
+  if (!ws) throw new Error("No se encontro ninguna hoja con la columna 'No. Avalúo'");
   const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
   const headerIdx = findHeaderRow(rows);
   if (headerIdx === null) {
@@ -214,10 +227,10 @@ function startSync({ supabaseUrl, anonKey, serviceRoleKey, excelPath, onLog }) {
       return;
     }
     if (mtime === lastMtime || syncing) return;
-    lastMtime = mtime;
     syncing = true;
     try {
       const { inserted, deleted } = await syncOnce(writeClient, excelPath);
+      lastMtime = mtime;
       log(
         `[sync] ${new Date().toISOString()} sincronizado: ${inserted} avaluos, ${deleted} eliminados`
       );
