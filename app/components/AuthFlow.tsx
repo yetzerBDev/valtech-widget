@@ -137,6 +137,7 @@ export default function AuthFlow() {
   const [online, setOnline] = useState(true);
   const [widgetVersion, setWidgetVersion] = useState<string | null>(null);
   const [showUpdateCard, setShowUpdateCard] = useState(false);
+  const [installCountdown, setInstallCountdown] = useState<number | null>(null);
   const [update, setUpdate] = useState<
     | { state: "downloading"; percent: number }
     | { state: "downloaded"; version: string }
@@ -148,6 +149,7 @@ export default function AuthFlow() {
   const [showSettings, setShowSettings] = useState(false);
   const [excelPathInput, setExcelPathInput] = useState("");
   const [syncLog, setSyncLog] = useState<string[]>([]);
+  const [syncState, setSyncState] = useState<"idle" | "ok" | "error">("idle");
   const [savingSync, setSavingSync] = useState(false);
 
   useEffect(() => {
@@ -228,9 +230,10 @@ export default function AuthFlow() {
       window.electronAPI.onUpdateProgress(({ percent }) =>
         setUpdate((u) => (u?.state === "downloading" ? { ...u, percent } : u))
       ),
-      window.electronAPI.onUpdateDownloaded(({ version }) =>
-        setUpdate({ state: "downloaded", version })
-      ),
+      window.electronAPI.onUpdateDownloaded(({ version }) => {
+        setUpdate({ state: "downloaded", version });
+        setInstallCountdown(10);
+      }),
       window.electronAPI.onUpdateError(({ message }) =>
         setUpdate({ state: "error", message })
       ),
@@ -239,12 +242,26 @@ export default function AuthFlow() {
   }, [isWidget]);
 
   useEffect(() => {
+    if (installCountdown === null || update?.state !== "downloaded") return;
+    if (installCountdown <= 0) {
+      setInstallCountdown(null);
+      window.electronAPI?.quitAndInstall?.();
+      return;
+    }
+    const id = window.setTimeout(() => setInstallCountdown((c) => (c ?? 0) - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [installCountdown, update?.state]);
+
+  useEffect(() => {
     if (!isWidget || !window.electronAPI?.getConfig) return;
     window.electronAPI.getConfig().then((cfg) => {
       setExcelPathInput(cfg?.excelPath ?? "");
     });
     const off = window.electronAPI.onSyncStatus?.(({ message }) => {
       setSyncLog((logs) => [...logs.slice(-8), message]);
+      if (message.includes("sincronizado")) setSyncState("ok");
+      else if (message.includes("error")) setSyncState("error");
+      else setSyncState("idle");
     });
     return () => off?.();
   }, [isWidget]);
@@ -522,7 +539,7 @@ export default function AuthFlow() {
                   update.state === "error"
                     ? update.message
                     : update.state === "downloaded"
-                      ? "Clic para instalar y reiniciar"
+                      ? "Se instalará automáticamente"
                       : "Descargando actualización…"
                 }
                 className={`flex h-6 items-center gap-1 rounded-full px-2 text-[10px] font-bold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
@@ -551,8 +568,24 @@ export default function AuthFlow() {
                 />
                 {update.state === "downloading"
                   ? `${Math.round(update.percent)}%`
-                  : "Actualizar"}
+                  : update.state === "downloaded" && installCountdown !== null
+                    ? `Reinicia en ${installCountdown}s`
+                    : "Actualizar"}
               </button>
+            )}
+            {cargo === "encargado" && syncState !== "idle" && (
+              <span
+                title={
+                  syncState === "error"
+                    ? "Error de sincronización — revisar Configuración"
+                    : "Sincronizado con el Excel"
+                }
+                className={`flex h-2 w-2 rounded-full ${
+                  syncState === "error"
+                    ? "bg-red-500"
+                    : "bg-sky-400"
+                }`}
+              />
             )}
             {online ? (
               <span className="relative flex h-2 w-2" title="Activo">
@@ -906,7 +939,7 @@ export default function AuthFlow() {
               {syncLog.length > 0 && (
                 <div className="mt-3 max-h-28 overflow-y-auto rounded-lg bg-surface-container-high/60 p-2 font-mono text-[9.5px] leading-relaxed text-on-surface-variant">
                   {syncLog.map((l, i) => (
-                    <p key={i} className="truncate">
+                    <p key={i} className={`truncate ${l.includes("[sync] error") ? "text-red-500" : ""}`}>
                       {l}
                     </p>
                   ))}

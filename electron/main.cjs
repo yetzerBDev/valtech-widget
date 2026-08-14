@@ -342,6 +342,7 @@ if (!gotTheLock) {
       autoUpdater.autoInstallOnAppQuit = true;
 
       let updateDownloaded = false;
+      let updateInstallTimer = null;
 
       const send = (channel, payload) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -358,6 +359,13 @@ if (!gotTheLock) {
       autoUpdater.on("update-downloaded", (info) => {
         updateDownloaded = true;
         send("update:downloaded", { version: info?.version ?? "" });
+        // Respaldo: si el renderer no confirma la instalacion (p. ej. ventana
+        // minimizada), se instala igual al cabo de 60s. La UI muestra su propio
+        // countdown mas corto con opcion "Instalar ahora".
+        if (updateInstallTimer) clearTimeout(updateInstallTimer);
+        updateInstallTimer = setTimeout(() => {
+          if (updateDownloaded) autoUpdater.quitAndInstall();
+        }, 60 * 1000);
       });
       autoUpdater.on("error", (error) => {
         send("update:error", { message: error?.message ?? String(error) });
@@ -375,7 +383,7 @@ if (!gotTheLock) {
       };
 
       checkForUpdates();
-      setInterval(checkForUpdates, 30 * 60 * 1000);
+      setInterval(checkForUpdates, 15 * 60 * 1000);
     }
 
     app.on("activate", () => {
