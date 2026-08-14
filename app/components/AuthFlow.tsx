@@ -59,6 +59,19 @@ function colorEstatus(estatus: string | null): string {
   return "bg-orange-500";
 }
 
+function colorTipo(tipo: string | null): string {
+  const t = (tipo ?? "").trim().toLowerCase();
+  if (t.includes("avaluo")) return "bg-primary/15 text-primary";
+  if (t.includes("opinion") || t.includes("valor")) return "bg-sky-500/15 text-sky-500";
+  if (t.includes("obra")) return "bg-violet-500/15 text-violet-500";
+  if (t.includes("refrend")) return "bg-emerald-500/15 text-emerald-500";
+  if (t.includes("informe")) return "bg-amber-500/15 text-amber-500";
+  if (t.includes("revaluo")) return "bg-rose-500/15 text-rose-500";
+  if (t.includes("topografia")) return "bg-teal-500/15 text-teal-500";
+  if (t.includes("planimetria")) return "bg-indigo-500/15 text-indigo-500";
+  return "bg-surface-container-high text-on-surface-variant";
+}
+
 function horasDesde(fecha: string | null): number | null {
   if (!fecha) return null;
   const t = new Date(`${fecha}T00:00:00`).getTime();
@@ -760,9 +773,18 @@ export default function AuthFlow() {
                         <p className="min-w-0 truncate text-[12px] font-bold tracking-tight text-on-surface">
                           {a.no_avaluo}
                         </p>
-                        <span className="shrink-0 rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
-                          {a.estatus ?? "—"}
-                        </span>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          {a.tipo ? (
+                            <span
+                              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold leading-none ${colorTipo(a.tipo)}`}
+                            >
+                              {a.tipo}
+                            </span>
+                          ) : null}
+                          <span className="rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
+                            {a.estatus ?? "—"}
+                          </span>
+                        </div>
                       </div>
                       <p className="mt-1 truncate pl-1 text-[11px] font-medium text-on-surface-variant">
                         {a.solicitante ?? "—"}

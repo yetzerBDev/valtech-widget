@@ -59,6 +59,13 @@ function excelSerialToDate(serial) {
 
 function toCleanString(v) {
   if (v === null || v === undefined) return null;
+  // Celdas vacias con formato de fecha llegan como serial 0 -> 30/12/1899.
+  // No son texto: en columnas de texto se tratan como vacio.
+  if (v instanceof Date) return null;
+  if (typeof v === "number" && isFinite(v) && v < 100000) {
+    const d = excelSerialToDate(v);
+    if (d && d.getUTCFullYear() < 2000) return null;
+  }
   const s = String(v).trim();
   return s === "" ? null : s;
 }
