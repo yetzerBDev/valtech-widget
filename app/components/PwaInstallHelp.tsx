@@ -1,6 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export default function PwaInstallHelp({ onClose }: { onClose: () => void }) {
+  const [plataforma, setPlataforma] = useState<"android" | "ios-safari" | "ios-chrome" | "otros">("otros");
+
+  useEffect(() => {
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) {
+      setPlataforma(/crios/.test(ua) ? "ios-chrome" : "ios-safari");
+    } else if (/android/.test(ua)) {
+      setPlataforma("android");
+    } else {
+      setPlataforma("otros");
+    }
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -28,22 +43,66 @@ export default function PwaInstallHelp({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="mt-3 space-y-3 text-[12px] leading-relaxed text-on-surface-variant">
-          <p>
-            En <span className="font-semibold text-on-surface">Android (Chrome)</span>:
-          </p>
-          <ol className="list-decimal space-y-1 pl-4">
-            <li>Abre el menú <span className="font-semibold">⋮</span> arriba a la derecha.</li>
-            <li>Toca <span className="font-semibold">"Agregar a pantalla principal"</span>.</li>
-            <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
-          </ol>
-          <p>
-            En <span className="font-semibold text-on-surface">iPhone (Safari)</span>:
-          </p>
-          <ol className="list-decimal space-y-1 pl-4">
-            <li>Toca el botón <span className="font-semibold">Compartir</span> (cuadro con flecha ↑).</li>
-            <li>Desliza y toca <span className="font-semibold">"Agregar a pantalla de inicio"</span>.</li>
-            <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
-          </ol>
+          {plataforma === "android" && (
+            <>
+              <p>
+                En <span className="font-semibold text-on-surface">Android (Chrome)</span>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Abre el menú <span className="font-semibold">⋮</span> arriba a la derecha.</li>
+                <li>Toca <span className="font-semibold">"Agregar a pantalla principal"</span>.</li>
+                <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
+              </ol>
+            </>
+          )}
+          {plataforma === "ios-chrome" && (
+            <>
+              <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-amber-400">
+                En Chrome de iPhone no se puede instalar. Necesitas Safari.
+              </p>
+              <p>
+                En <span className="font-semibold text-on-surface">Safari</span>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Abre <span className="font-semibold">valtech-beta.vercel.app</span> en Safari.</li>
+                <li>Toca el botón <span className="font-semibold">Compartir</span> (cuadro con flecha ↑).</li>
+                <li>Desliza y toca <span className="font-semibold">"Agregar a pantalla de inicio"</span>.</li>
+                <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
+              </ol>
+            </>
+          )}
+          {plataforma === "ios-safari" && (
+            <>
+              <p>
+                En <span className="font-semibold text-on-surface">iPhone (Safari)</span>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Toca el botón <span className="font-semibold">Compartir</span> (cuadro con flecha ↑).</li>
+                <li>Desliza y toca <span className="font-semibold">"Agregar a pantalla de inicio"</span>.</li>
+                <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
+              </ol>
+            </>
+          )}
+          {plataforma === "otros" && (
+            <>
+              <p>
+                En <span className="font-semibold text-on-surface">Android (Chrome)</span>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Abre el menú <span className="font-semibold">⋮</span> arriba a la derecha.</li>
+                <li>Toca <span className="font-semibold">"Agregar a pantalla principal"</span>.</li>
+                <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
+              </ol>
+              <p>
+                En <span className="font-semibold text-on-surface">iPhone (Safari)</span>:
+              </p>
+              <ol className="list-decimal space-y-1 pl-4">
+                <li>Toca el botón <span className="font-semibold">Compartir</span> (cuadro con flecha ↑).</li>
+                <li>Desliza y toca <span className="font-semibold">"Agregar a pantalla de inicio"</span>.</li>
+                <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
+              </ol>
+            </>
+          )}
         </div>
       </div>
     </div>

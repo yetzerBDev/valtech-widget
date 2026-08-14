@@ -440,19 +440,6 @@ export default function AuthFlow() {
       await pwaInstallEvent.prompt();
       return;
     }
-    if (navigator.share && typeof navigator.share === "function") {
-      try {
-        await navigator.share({
-          title: "Valtech",
-          text: "Instala la app de Valtech en tu teléfono",
-          url: window.location.href,
-        });
-        return;
-      } catch {
-        /* El usuario canceló el compartir: solo cerrar, sin modal */
-        return;
-      }
-    }
     setShowPwaHelp(true);
   }
 
