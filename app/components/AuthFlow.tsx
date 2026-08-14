@@ -167,6 +167,7 @@ export default function AuthFlow() {
   const [syncState, setSyncState] = useState<"idle" | "ok" | "error">("idle");
   const [savingSync, setSavingSync] = useState(false);
   const [pwaInstallEvent, setPwaInstallEvent] = useState<{ prompt: () => void } | null>(null);
+  const [instalada, setInstalada] = useState(false);
   const [showPwaHelp, setShowPwaHelp] = useState(false);
   const [esMovil, setEsMovil] = useState(false);
 
@@ -212,7 +213,10 @@ export default function AuthFlow() {
       const evt = e as unknown as { prompt: () => void };
       setPwaInstallEvent(typeof evt.prompt === "function" ? evt : null);
     };
-    const onInstalled = () => setPwaInstallEvent(null);
+    const onInstalled = () => {
+      setPwaInstallEvent(null);
+      setInstalada(true);
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
@@ -429,6 +433,27 @@ export default function AuthFlow() {
     window.location.href = `widgetavaluo://auth?at=${encodeURIComponent(
       s.access_token
     )}&rt=${encodeURIComponent(s.refresh_token)}`;
+  }
+
+  async function instalarApp() {
+    if (pwaInstallEvent) {
+      await pwaInstallEvent.prompt();
+      return;
+    }
+    if (navigator.share && typeof navigator.share === "function") {
+      try {
+        await navigator.share({
+          title: "Valtech",
+          text: "Instala la app de Valtech en tu teléfono",
+          url: window.location.href,
+        });
+        return;
+      } catch {
+        /* El usuario canceló el compartir: solo cerrar, sin modal */
+        return;
+      }
+    }
+    setShowPwaHelp(true);
   }
 
   async function guardarSync() {
@@ -772,10 +797,20 @@ export default function AuthFlow() {
               <p className="text-[12px] text-on-surface-variant">Cargando avalúos…</p>
             </div>
           ) : avaluosError ? (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3">
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
               <p className="text-[12px] leading-relaxed text-red-400">
                 No se pudo cargar la información: {avaluosError}
               </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setAvaluosError(null);
+                  window.location.reload();
+                }}
+                className="rounded-lg bg-red-500/15 px-3 py-1.5 text-[12px] font-semibold text-red-400 transition-colors hover:bg-red-500/25"
+              >
+                Reintentar
+              </button>
             </div>
           ) : actuales.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center text-center">
@@ -931,16 +966,10 @@ export default function AuthFlow() {
                 )}
               </p>
             )}
-            {!isWidget && (
+            {!isWidget && !esPwa && (
               <button
                 type="button"
-                onClick={() => {
-                  if (pwaInstallEvent) {
-                    pwaInstallEvent.prompt();
-                  } else {
-                    setShowPwaHelp(true);
-                  }
-                }}
+                onClick={instalarApp}
                 className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[12px] font-semibold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <HugeiconsIcon icon={Download01Icon} size={14} strokeWidth={2} />
@@ -1142,16 +1171,10 @@ export default function AuthFlow() {
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
                     Versión actual: v0.1.33
                   </p>
-                  {esMovil && (
+                  {esMovil && !instalada && !esPwa && (
                     <button
                       type="button"
-                      onClick={() => {
-                        if (pwaInstallEvent) {
-                          pwaInstallEvent.prompt();
-                        } else {
-                          setShowPwaHelp(true);
-                        }
-                      }}
+                      onClick={instalarApp}
                       className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high text-[14px] font-semibold text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     >
                       <HugeiconsIcon icon={Download01Icon} size={20} />

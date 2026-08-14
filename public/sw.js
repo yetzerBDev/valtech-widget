@@ -1,6 +1,6 @@
 /* Service Worker del widget Valtech. Cache-first para assets, network-first
    para la app (funciona offline con la ultima version cargada). */
-const CACHE = "valtech-v1";
+const CACHE = "valtech-v2";
 const SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
