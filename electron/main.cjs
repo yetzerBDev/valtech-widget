@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, Notification } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const http = require("http");
@@ -285,6 +285,22 @@ if (!gotTheLock) {
         mainWindow.webContents.send("sync:status", { message });
       }
     };
+
+    let notifier = null;
+    try {
+      const { startNotifier } = require("./notify.cjs");
+      notifier = startNotifier({
+        supabaseConfig,
+        userDataPath: app.getPath("userData"),
+        onLog: (msg) => sendSyncStatus(msg),
+      });
+    } catch {
+      /* notificaciones no criticas */
+    }
+
+    ipcMain.on("notify:set-user", (_event, payload) => {
+      notifier?.setUser(payload ?? null);
+    });
 
     const startSyncWatcher = (excelPath) => {
       if (stopSync) {

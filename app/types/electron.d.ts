@@ -24,6 +24,7 @@ declare global {
       setConfig: (payload: { excelPath?: string }) => Promise<{ excelPath?: string }>;
       pickExcel: () => Promise<string | null>;
       onSyncStatus: (callback: (payload: { message: string }) => void) => () => void;
+      setNotifyUser: (payload: { cargo: string; nombre: string } | null) => void;
     };
   }
 }

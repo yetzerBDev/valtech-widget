@@ -49,4 +49,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("sync:status", listener);
     return () => ipcRenderer.removeListener("sync:status", listener);
   },
+  setNotifyUser: (payload) => ipcRenderer.send("notify:set-user", payload),
 });

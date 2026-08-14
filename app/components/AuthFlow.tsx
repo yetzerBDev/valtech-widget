@@ -290,7 +290,12 @@ export default function AuthFlow() {
         .select("nombre, cargo")
         .eq("id", user.id)
         .maybeSingle();
-      if (!cancelled) setPerfil(data ?? null);
+      if (!cancelled) {
+        setPerfil(data ?? null);
+        window.electronAPI?.setNotifyUser?.(
+          data?.cargo ? { cargo: data.cargo, nombre: data.nombre ?? "" } : null
+        );
+      }
     };
 
     const nombre =
