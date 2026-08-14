@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import WidgetChrome from "./components/WidgetChrome";
+import PwaRegister from "./components/PwaRegister";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,8 +18,16 @@ export const metadata: Metadata = {
   title: "Valtech",
   description:
     "Plataforma privada para el control de solicitudes de avalúos.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "Valtech",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Valtech",
+  },
   icons: {
     icon: "/LOGO VALTECH.png",
+    apple: "/apple-touch-icon.png",
   },
   other: {
     "google-site-verification": "uMFpcebvFpoh4_2FgXyZXBAQfDrft2C7_NZGR7VZfOc",
@@ -40,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         <WidgetChrome />
+        <PwaRegister />
         {children}
       </body>
     </html>

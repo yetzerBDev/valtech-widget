@@ -1,6 +1,7 @@
 "use client";
 
 export default function WidgetChrome() {
+  if (typeof window === "undefined" || !window.electronAPI) return null;
   return (
     <div className="fixed inset-x-0 top-0 z-40 flex h-7 items-center select-none bg-background/80 backdrop-blur-sm [-webkit-app-region:drag]">
       <button

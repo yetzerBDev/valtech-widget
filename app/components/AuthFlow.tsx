@@ -164,6 +164,7 @@ export default function AuthFlow() {
   const [syncLog, setSyncLog] = useState<string[]>([]);
   const [syncState, setSyncState] = useState<"idle" | "ok" | "error">("idle");
   const [savingSync, setSavingSync] = useState(false);
+  const [pwaInstallEvent, setPwaInstallEvent] = useState<{ prompt: () => void } | null>(null);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -196,6 +197,22 @@ export default function AuthFlow() {
       window.removeEventListener("offline", updateOnline);
     };
   }, []);
+
+  useEffect(() => {
+    if (isWidget) return;
+    const onPrompt = (e: Event) => {
+      e.preventDefault();
+      const evt = e as unknown as { prompt: () => void };
+      setPwaInstallEvent(typeof evt.prompt === "function" ? evt : null);
+    };
+    const onInstalled = () => setPwaInstallEvent(null);
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, [isWidget]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -897,6 +914,16 @@ export default function AuthFlow() {
                   </span>
                 )}
               </p>
+            )}
+            {!isWidget && pwaInstallEvent && (
+              <button
+                type="button"
+                onClick={() => pwaInstallEvent.prompt()}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[12px] font-semibold text-on-primary transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <HugeiconsIcon icon={Download01Icon} size={14} strokeWidth={2} />
+                Instalar aplicación en tu teléfono
+              </button>
             )}
           </div>
         </div>
