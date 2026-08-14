@@ -141,6 +141,7 @@ function GoogleLogo({ className }: { className?: string }) {
 
 export default function AuthFlow() {
   const [isWidget, setIsWidget] = useState(false);
+  const [esPwa, setEsPwa] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -173,6 +174,9 @@ export default function AuthFlow() {
     const id = window.setTimeout(() => {
       const widget = Boolean(window.electronAPI);
       setIsWidget(widget);
+      const mq = window.matchMedia("(display-mode: standalone)");
+      const standalone = mq.matches || ("standalone" in navigator && (navigator as { standalone?: boolean }).standalone === true);
+      setEsPwa(!widget && standalone);
       if (supabase) {
         supabase.auth.getSession().then(({ data }) => {
           setUser(data.session?.user ?? null);
@@ -451,7 +455,7 @@ export default function AuthFlow() {
     if (p) setExcelPathInput(p);
   }
 
-  if (isWidget) {
+  if (isWidget || esPwa) {
     if (!user) {
       return (
         <main className="flex h-[100dvh] flex-col items-center justify-center bg-background px-6 text-on-background">
@@ -462,12 +466,12 @@ export default function AuthFlow() {
             priority
           />
           <h1 className="mt-4 text-[17px] font-bold tracking-tight text-on-surface">
-            Widget Avalúo
+            {esPwa ? "Valtech" : "Widget Avalúo"}
           </h1>
           <p className="mt-1 max-w-[32ch] text-center text-[12px] leading-relaxed text-on-surface-variant">
-            Inicia sesión en la web (valtech-beta.vercel.app) y pulsa{" "}
-            <span className="font-semibold text-on-surface">&ldquo;Abrir sesión en el widget&rdquo;</span>.
-            Esta ventana se conectará sola.
+            {esPwa
+              ? "Inicia sesión con tu cuenta de Google para consultar tus avalúos."
+              : "Inicia sesión en la web (valtech-beta.vercel.app) y pulsa \"Abrir sesión en el widget\". Esta ventana se conectará sola."}
           </p>
           {signingIn && (
             <p className="mt-3 flex items-center gap-2 text-[12px] text-on-surface-variant">
@@ -553,7 +557,7 @@ export default function AuthFlow() {
     const cargando = avaluos === null && !avaluosError;
 
     return (
-      <main className="flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 pt-7 text-on-background">
+      <main className={`flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 text-on-background ${isWidget ? "pt-7" : "pt-5"}`}>
         <header className="flex items-center justify-between">
           <Logo
             width={22}
@@ -562,7 +566,7 @@ export default function AuthFlow() {
             priority
           />
           <div className="flex items-center gap-1.5">
-            {cargo === "encargado" && (
+            {cargo === "encargado" && isWidget && (
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
@@ -620,7 +624,7 @@ export default function AuthFlow() {
                     : "Actualizar"}
               </button>
             )}
-            {cargo === "encargado" && syncState !== "idle" && (
+            {cargo === "encargado" && isWidget && syncState !== "idle" && (
               <span
                 title={
                   syncState === "error"
