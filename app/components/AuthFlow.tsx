@@ -21,6 +21,7 @@ import { supabase } from "../../lib/supabase/client";
 import DownloadExe from "./DownloadExe";
 import ThemeToggle from "./ThemeToggle";
 import Logo from "./Logo";
+import PwaInstallHelp from "./PwaInstallHelp";
 
 const CARD_SHADOW =
   "shadow-[0_1px_2px_rgba(24,24,27,0.05),0_12px_32px_-12px_rgba(24,24,27,0.18)]";
@@ -166,6 +167,7 @@ export default function AuthFlow() {
   const [savingSync, setSavingSync] = useState(false);
   const [pwaInstallEvent, setPwaInstallEvent] = useState<{ prompt: () => void } | null>(null);
   const [showPwaHelp, setShowPwaHelp] = useState(false);
+  const [esMovil, setEsMovil] = useState(false);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -213,6 +215,15 @@ export default function AuthFlow() {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
     };
+  }, [isWidget]);
+
+  useEffect(() => {
+    if (isWidget || typeof window.matchMedia !== "function") return;
+    const mq = window.matchMedia("(pointer: coarse), (max-width: 768px)");
+    const actualizar = () => setEsMovil(mq.matches);
+    actualizar();
+    mq.addEventListener("change", actualizar);
+    return () => mq.removeEventListener("change", actualizar);
   }, [isWidget]);
 
   useEffect(() => {
@@ -935,53 +946,7 @@ export default function AuthFlow() {
           </div>
         </div>
 
-        {showPwaHelp && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-            role="dialog"
-            aria-modal="true"
-            onClick={() => setShowPwaHelp(false)}
-          >
-            <div
-              className="w-full max-w-[340px] rounded-2xl border border-outline-variant/30 bg-surface p-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-[13px] font-bold tracking-tight text-on-surface">
-                  Instalar en tu teléfono
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowPwaHelp(false)}
-                  aria-label="Cerrar"
-                  className="flex h-7 w-7 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface focus-visible:outline-none"
-                >
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
-                </button>
-              </div>
-              <div className="mt-3 space-y-3 text-[12px] leading-relaxed text-on-surface-variant">
-                <p>
-                  En <span className="font-semibold text-on-surface">Android (Chrome)</span>:
-                </p>
-                <ol className="list-decimal space-y-1 pl-4">
-                  <li>Abre el menú <span className="font-semibold">⋮</span> arriba a la derecha.</li>
-                  <li>Toca <span className="font-semibold">"Agregar a pantalla principal"</span>.</li>
-                  <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
-                </ol>
-                <p>
-                  En <span className="font-semibold text-on-surface">iPhone (Safari)</span>:
-                </p>
-                <ol className="list-decimal space-y-1 pl-4">
-                  <li>Toca el botón <span className="font-semibold">Compartir</span> (cuadro con flecha ↑).</li>
-                  <li>Desliza y toca <span className="font-semibold">"Agregar a pantalla de inicio"</span>.</li>
-                  <li>Confirma con <span className="font-semibold">"Agregar"</span>.</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        )}
+        {showPwaHelp && <PwaInstallHelp onClose={() => setShowPwaHelp(false)} />}
 
         {showSettings && (
           <div
@@ -1171,8 +1136,24 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.31
+                    Versión actual: v0.1.33
                   </p>
+                  {esMovil && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (pwaInstallEvent) {
+                          pwaInstallEvent.prompt();
+                        } else {
+                          setShowPwaHelp(true);
+                        }
+                      }}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-container-high text-[14px] font-semibold text-on-surface transition-colors hover:bg-surface-container-highest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    >
+                      <HugeiconsIcon icon={Download01Icon} size={20} />
+                      Instalar aplicación en tu móvil
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={vincularWidget}
@@ -1188,6 +1169,7 @@ export default function AuthFlow() {
             </div>
           </div>
         </main>
+        {showPwaHelp && <PwaInstallHelp onClose={() => setShowPwaHelp(false)} />}
       </div>
     );
   }
