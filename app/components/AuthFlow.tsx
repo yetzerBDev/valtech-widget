@@ -834,13 +834,6 @@ export default function AuthFlow() {
                           {a.no_avaluo}
                         </p>
                         <div className="flex shrink-0 items-center gap-1.5">
-                          {a.tipo ? (
-                            <span
-                              className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold leading-none ${colorTipo(a.tipo)}`}
-                            >
-                              {a.tipo}
-                            </span>
-                          ) : null}
                           <span className="rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
                             {a.estatus ?? "—"}
                           </span>

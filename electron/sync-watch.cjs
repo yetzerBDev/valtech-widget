@@ -110,52 +110,40 @@ function findHeaderRow(rows) {
 
 function parseWorkbook(filePath) {
   const wb = XLSX.readFile(filePath, { cellDates: true });
-  // No asumir que la hoja es la primera: el encargado puede tener una portada
-  // o instrucciones al inicio. Se elige la primera hoja que tenga el encabezado
-  // "No. Avalúo".
-  let ws = null;
-  let sheetName = null;
+  const out = [];
+
   for (const name of wb.SheetNames) {
     const sheet = wb.Sheets[name];
-    const probe = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-    if (findHeaderRow(probe) !== null) {
-      ws = sheet;
-      sheetName = name;
-      break;
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+    const headerIdx = findHeaderRow(rows);
+    if (headerIdx === null) continue;
+    const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
+    const colMap = [];
+    headers.forEach((h, idx) => {
+      let key = NORM_MAP[h];
+      if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
+      if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
+      if (key) colMap[idx] = key;
+    });
+    const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
+    for (let r = headerIdx + 1; r < rows.length; r++) {
+      const row = rows[r] ?? [];
+      const empty = row.every((c) => c === null || c === undefined || String(c).trim() === "");
+      if (empty) continue;
+      const rec = {};
+      for (let c = 0; c < colMap.length; c++) {
+        const key = colMap[c];
+        if (!key) continue;
+        const v = row[c];
+        if (DATE_KEYS.has(key)) rec[key] = toCleanDate(v);
+        else if (key === "dias_abierto") rec[key] = toCleanNumber(v);
+        else rec[key] = toCleanString(v);
+      }
+      if (!rec.no_avaluo) continue;
+      out.push(rec);
     }
   }
-  if (!ws) throw new Error("No se encontro ninguna hoja con la columna 'No. Avalúo'");
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-  const headerIdx = findHeaderRow(rows);
-  if (headerIdx === null) {
-    throw new Error("No se encontro la fila de encabezados (buscando 'No. Avalúo')");
-  }
-  const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
-  const colMap = [];
-  headers.forEach((h, idx) => {
-    let key = NORM_MAP[h];
-    if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
-    if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
-    if (key) colMap[idx] = key;
-  });
-  const out = [];
-  const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
-  for (let r = headerIdx + 1; r < rows.length; r++) {
-    const row = rows[r] ?? [];
-    const empty = row.every((c) => c === null || c === undefined || String(c).trim() === "");
-    if (empty) continue;
-    const rec = {};
-    for (let c = 0; c < colMap.length; c++) {
-      const key = colMap[c];
-      if (!key) continue;
-      const v = row[c];
-      if (DATE_KEYS.has(key)) rec[key] = toCleanDate(v);
-      else if (key === "dias_abierto") rec[key] = toCleanNumber(v);
-      else rec[key] = toCleanString(v);
-    }
-    if (!rec.no_avaluo) continue;
-    out.push(rec);
-  }
+  if (out.length === 0) throw new Error("No se encontro ninguna hoja con la columna 'No. Avalúo'");
   return out;
 }
 

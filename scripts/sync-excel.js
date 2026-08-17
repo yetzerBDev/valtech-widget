@@ -128,43 +128,40 @@ function findHeaderRow(rows) {
 
 function parseWorkbook(filePath) {
   const wb = XLSX.readFile(filePath, { cellDates: true });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) throw new Error("El libro no tiene hojas");
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-  const headerIdx = findHeaderRow(rows);
-  if (headerIdx === null) {
-    throw new Error("No se encontro la fila de encabezados (buscando 'No. Avalúo')");
-  }
-  const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
-  const colMap = [];
-  headers.forEach((h, idx) => {
-    let key = NORM_MAP[h];
-    if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
-    if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
-    if (key) colMap[idx] = key;
-  });
-  if (!colMap.includes("no_avaluo")) {
-    throw new Error("No se encontro la columna 'No. Avalúo'");
-  }
-
   const out = [];
-  const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
-  for (let r = headerIdx + 1; r < rows.length; r++) {
-    const row = rows[r] ?? [];
-    const empty = row.every((c) => c === null || c === undefined || String(c).trim() === "");
-    if (empty) continue;
-    const rec = {};
-    for (let c = 0; c < colMap.length; c++) {
-      const key = colMap[c];
-      if (!key) continue;
-      const v = row[c];
-      if (DATE_KEYS.has(key)) rec[key] = toCleanDate(v);
-      else if (key === "dias_abierto") rec[key] = toCleanNumber(v);
-      else rec[key] = toCleanString(v);
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    if (!ws) continue;
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+    const headerIdx = findHeaderRow(rows);
+    if (headerIdx === null) continue;
+    const headers = (rows[headerIdx] ?? []).map(normalizeHeader);
+    const colMap = [];
+    headers.forEach((h, idx) => {
+      let key = NORM_MAP[h];
+      if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
+      if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
+      if (key) colMap[idx] = key;
+    });
+    const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
+    for (let r = headerIdx + 1; r < rows.length; r++) {
+      const row = rows[r] ?? [];
+      const empty = row.every((c) => c === null || c === undefined || String(c).trim() === "");
+      if (empty) continue;
+      const rec = {};
+      for (let c = 0; c < colMap.length; c++) {
+        const key = colMap[c];
+        if (!key) continue;
+        const v = row[c];
+        if (DATE_KEYS.has(key)) rec[key] = toCleanDate(v);
+        else if (key === "dias_abierto") rec[key] = toCleanNumber(v);
+        else rec[key] = toCleanString(v);
+      }
+      if (!rec.no_avaluo) continue;
+      out.push(rec);
     }
-    if (!rec.no_avaluo) continue;
-    out.push(rec);
   }
+  if (out.length === 0) throw new Error("No se encontro ninguna hoja con la columna 'No. Avalúo'");
   return out;
 }
 
