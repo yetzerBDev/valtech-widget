@@ -582,15 +582,21 @@ export default function AuthFlow() {
 
     // Agrupar abiertos por digitador y perito (para tabs del encargado)
     const agrupar = (lista: Avaluo[], key: "digitador" | "perito") => {
-      const map = new Map<string, number>();
+      const map = new Map<string, { display: string; count: number }>();
       for (const a of lista) {
-        const name = (a[key] ?? "").trim();
-        if (!name) continue;
-        map.set(name, (map.get(name) ?? 0) + 1);
+        const raw = (a[key] ?? "").trim();
+        if (!raw) continue;
+        const norm = normalizeNombre(raw);
+        const existing = map.get(norm);
+        if (existing) {
+          existing.count++;
+        } else {
+          map.set(norm, { display: raw.toUpperCase(), count: 1 });
+        }
       }
-      return [...map.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([name, count]) => ({ name, count }));
+      return [...map.values()]
+        .sort((a, b) => b.count - a.count)
+        .map((v) => ({ name: v.display, count: v.count }));
     };
     const abiertosPorDigitador = agrupar(abiertos, "digitador");
     const abiertosPorPerito = agrupar(abiertos, "perito");
@@ -746,60 +752,62 @@ export default function AuthFlow() {
             Solicitudes de avalúo
           </h1>
 
-          {/* Tab principal: solo encargado ve los 3 tabs */}
-          <div className="mt-3 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={encargadoTab === "avaluos"}
-              onClick={() => { setEncargadoTab("avaluos"); setPagina(0); }}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                encargadoTab === "avaluos"
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Avalúos
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "avaluos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
-                {visibles.length}
-              </span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={encargadoTab === "digitadores"}
-              onClick={() => { setEncargadoTab("digitadores"); setPagina(0); }}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                encargadoTab === "digitadores"
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Digitadores
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "digitadores" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
-                {abiertosPorDigitador.length}
-              </span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={encargadoTab === "peritos"}
-              onClick={() => { setEncargadoTab("peritos"); setPagina(0); }}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                encargadoTab === "peritos"
-                  ? "bg-primary text-on-primary shadow-sm"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-            >
-              Peritos
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "peritos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
-                {abiertosPorPerito.length}
-              </span>
-            </button>
-          </div>
+          {/* Tab principal: solo encargado ve los 3 tabs (Avalúos/Digitadores/Peritos) */}
+          {cargo === "encargado" && (
+            <div className="mt-3 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={encargadoTab === "avaluos"}
+                onClick={() => { setEncargadoTab("avaluos"); setPagina(0); }}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  encargadoTab === "avaluos"
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                Avalúos
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "avaluos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                  {visibles.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={encargadoTab === "digitadores"}
+                onClick={() => { setEncargadoTab("digitadores"); setPagina(0); }}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  encargadoTab === "digitadores"
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                Digitadores
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "digitadores" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                  {abiertosPorDigitador.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={encargadoTab === "peritos"}
+                onClick={() => { setEncargadoTab("peritos"); setPagina(0); }}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  encargadoTab === "peritos"
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                Peritos
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "peritos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                  {abiertosPorPerito.length}
+                </span>
+              </button>
+            </div>
+          )}
 
-          {/* Sub-tabs de avalúos: solo cuando se ve la pestaña Avalúos */}
-          {encargadoTab === "avaluos" && (
+          {/* Sub-tabs Abiertos/Con visita: encargado solo los ve en pestaña Avalúos, otros roles siempre */}
+          {(cargo !== "encargado" || encargadoTab === "avaluos") && (
             <div className="mt-2 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
               <button
                 type="button"
@@ -971,8 +979,8 @@ export default function AuthFlow() {
             </>
           )}
 
-          {/* Pestaña Digitadores */}
-          {encargadoTab === "digitadores" && (
+          {/* Pestaña Digitadores (solo encargado) */}
+          {cargo === "encargado" && encargadoTab === "digitadores" && (
             <div className="min-h-0 flex-1 overflow-y-auto">
               {abiertosPorDigitador.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
@@ -1004,8 +1012,8 @@ export default function AuthFlow() {
             </div>
           )}
 
-          {/* Pestaña Peritos */}
-          {encargadoTab === "peritos" && (
+          {/* Pestaña Peritos (solo encargado) */}
+          {cargo === "encargado" && encargadoTab === "peritos" && (
             <div className="min-h-0 flex-1 overflow-y-auto">
               {abiertosPorPerito.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
@@ -1258,7 +1266,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.36
+                    Versión actual: v0.1.37
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button
