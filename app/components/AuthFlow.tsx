@@ -147,6 +147,7 @@ export default function AuthFlow() {
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
+  const [encargadoTab, setEncargadoTab] = useState<"avaluos" | "digitadores" | "peritos">("avaluos");
   const [pagina, setPagina] = useState(0);
   const POR_PAGINA = 10;
   const [online, setOnline] = useState(true);
@@ -578,7 +579,23 @@ export default function AuthFlow() {
     const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus) && es2026OMas(a));
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
-    const todosActuales = widgetTab === "abiertos" ? abiertos : conVisita;
+
+    // Agrupar abiertos por digitador y perito (para tabs del encargado)
+    const agrupar = (lista: Avaluo[], key: "digitador" | "perito") => {
+      const map = new Map<string, number>();
+      for (const a of lista) {
+        const name = (a[key] ?? "").trim();
+        if (!name) continue;
+        map.set(name, (map.get(name) ?? 0) + 1);
+      }
+      return [...map.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({ name, count }));
+    };
+    const abiertosPorDigitador = agrupar(abiertos, "digitador");
+    const abiertosPorPerito = agrupar(abiertos, "perito");
+
+    const todosActuales = encargadoTab === "avaluos" ? (widgetTab === "abiertos" ? abiertos : conVisita) : [];
     const totalPaginas = Math.max(1, Math.ceil(todosActuales.length / POR_PAGINA));
     const paginaSegura = Math.min(pagina, totalPaginas - 1);
     const actuales = todosActuales.slice(
@@ -729,221 +746,294 @@ export default function AuthFlow() {
             Solicitudes de avalúo
           </h1>
 
+          {/* Tab principal: solo encargado ve los 3 tabs */}
           <div className="mt-3 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "abiertos"}
-              onClick={() => {
-                setWidgetTab("abiertos");
-                setPagina(0);
-              }}
+              aria-selected={encargadoTab === "avaluos"}
+              onClick={() => { setEncargadoTab("avaluos"); setPagina(0); }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "abiertos"
+                encargadoTab === "avaluos"
                   ? "bg-primary text-on-primary shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              Abiertos
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "abiertos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
-                }`}
-              >
-                {abiertos.length}
+              Avalúos
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "avaluos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                {visibles.length}
               </span>
             </button>
             <button
               type="button"
               role="tab"
-              aria-selected={widgetTab === "convisita"}
-              onClick={() => {
-                setWidgetTab("convisita");
-                setPagina(0);
-              }}
+              aria-selected={encargadoTab === "digitadores"}
+              onClick={() => { setEncargadoTab("digitadores"); setPagina(0); }}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                widgetTab === "convisita"
+                encargadoTab === "digitadores"
                   ? "bg-primary text-on-primary shadow-sm"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
             >
-              Con visita
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
-                  widgetTab === "convisita" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"
-                }`}
-              >
-                {conVisita.length}
+              Digitadores
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "digitadores" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                {abiertosPorDigitador.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={encargadoTab === "peritos"}
+              onClick={() => { setEncargadoTab("peritos"); setPagina(0); }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                encargadoTab === "peritos"
+                  ? "bg-primary text-on-primary shadow-sm"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              Peritos
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${encargadoTab === "peritos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                {abiertosPorPerito.length}
               </span>
             </button>
           </div>
+
+          {/* Sub-tabs de avalúos: solo cuando se ve la pestaña Avalúos */}
+          {encargadoTab === "avaluos" && (
+            <div className="mt-2 flex rounded-lg bg-surface-container-high p-[3px]" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={widgetTab === "abiertos"}
+                onClick={() => { setWidgetTab("abiertos"); setPagina(0); }}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  widgetTab === "abiertos"
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                Abiertos
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${widgetTab === "abiertos" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                  {abiertos.length}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={widgetTab === "convisita"}
+                onClick={() => { setWidgetTab("convisita"); setPagina(0); }}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  widgetTab === "convisita"
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-on-surface"
+                }`}
+              >
+                Con visita
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${widgetTab === "convisita" ? "bg-black/15 text-on-primary" : "bg-surface-container-highest text-on-surface-variant"}`}>
+                  {conVisita.length}
+                </span>
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="mt-3 flex min-h-0 flex-1 flex-col">
-          {!online || (avaluosError && avaluosError.includes("Failed to fetch")) ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-red-500">
-                <HugeiconsIcon icon={CloudOffIcon} size={20} strokeWidth={1.5} />
-              </div>
-              <h2 className="mt-1 text-[14px] font-bold tracking-tight text-on-surface">
-                Sin conexión
-              </h2>
-              <p className="max-w-[28ch] text-[12px] leading-relaxed text-on-surface-variant">
-                No hay conexión a internet. Los avalúos aparecerán automáticamente cuando te vuelvas a conectar.
-              </p>
-            </div>
-          ) : cargando ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-              <HugeiconsIcon
-                icon={Loading02Icon}
-                size={18}
-                strokeWidth={2}
-                className="animate-spin text-on-surface-variant motion-reduce:animate-none"
-              />
-              <p className="text-[12px] text-on-surface-variant">Cargando avalúos…</p>
-            </div>
-          ) : avaluosError ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
-              <p className="text-[12px] leading-relaxed text-red-400">
-                No se pudo cargar la información: {avaluosError}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setAvaluosError(null);
-                  window.location.reload();
-                }}
-                className="rounded-lg bg-red-500/15 px-3 py-1.5 text-[12px] font-semibold text-red-400 transition-colors hover:bg-red-500/25"
-              >
-                Reintentar
-              </button>
-            </div>
-          ) : actuales.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
-                <HugeiconsIcon
-                  icon={widgetTab === "abiertos" ? MapPinIcon : MapPinCheckIcon}
-                  size={20}
-                  strokeWidth={1.5}
-                />
-              </div>
-              <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
-                {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos con visita"}
-              </h2>
-              <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
-                {widgetTab === "abiertos"
-                  ? "Los avalúos sin visita enviada aparecerán aquí en tiempo real."
-                  : "Los avalúos con visita enviada aparecerán aquí en tiempo real."}
-              </p>
-            </div>
-          ) : (
-            <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
-              <ul className="flex flex-col gap-2">
-                {actuales.map((a) => {
-                  const horasPerito = horasDesde(a.fecha_envio_perito);
-                  const horasVisita = horasDesde(a.fecha_envio_visita);
-                  return (
-                    <li
-                      key={a.no_avaluo}
-                      className="relative overflow-hidden rounded-xl border border-outline-variant/50 bg-surface p-3 shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
-                    >
-                      <span className={`absolute inset-y-0 left-0 w-1 ${colorEstatus(a.estatus)}`} />
-                      <div className="flex items-center justify-between gap-2 pl-1">
-                        <p className="min-w-0 truncate text-[12px] font-bold tracking-tight text-on-surface">
-                          {a.no_avaluo}
-                        </p>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <span className="rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
-                            {a.estatus ?? "—"}
-                          </span>
-                        </div>
+          {/* Pestaña Avalúos */}
+          {encargadoTab === "avaluos" && (
+            <>
+              {!online || (avaluosError && avaluosError.includes("Failed to fetch")) ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-red-500">
+                    <HugeiconsIcon icon={CloudOffIcon} size={20} strokeWidth={1.5} />
+                  </div>
+                  <h2 className="mt-1 text-[14px] font-bold tracking-tight text-on-surface">
+                    Sin conexión
+                  </h2>
+                  <p className="max-w-[28ch] text-[12px] leading-relaxed text-on-surface-variant">
+                    No hay conexión a internet. Los avalúos aparecerán automáticamente cuando te vuelvas a conectar.
+                  </p>
+                </div>
+              ) : cargando ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+                  <HugeiconsIcon
+                    icon={Loading02Icon}
+                    size={18}
+                    strokeWidth={2}
+                    className="animate-spin text-on-surface-variant motion-reduce:animate-none"
+                  />
+                  <p className="text-[12px] text-on-surface-variant">Cargando avalúos…</p>
+                </div>
+              ) : avaluosError ? (
+                <div className="flex flex-col items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
+                  <p className="text-[12px] leading-relaxed text-red-400">
+                    No se pudo cargar la información: {avaluosError}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setAvaluosError(null); window.location.reload(); }}
+                    className="rounded-lg bg-red-500/15 px-3 py-1.5 text-[12px] font-semibold text-red-400 transition-colors hover:bg-red-500/25"
+                  >
+                    Reintentar
+                  </button>
+                </div>
+              ) : actuales.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+                    <HugeiconsIcon
+                      icon={widgetTab === "abiertos" ? MapPinIcon : MapPinCheckIcon}
+                      size={20}
+                      strokeWidth={1.5}
+                    />
+                  </div>
+                  <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">
+                    {widgetTab === "abiertos" ? "Sin avalúos abiertos" : "Sin avalúos con visita"}
+                  </h2>
+                  <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
+                    {widgetTab === "abiertos"
+                      ? "Los avalúos sin visita enviada aparecerán aquí en tiempo real."
+                      : "Los avalúos con visita enviada aparecerán aquí en tiempo real."}
+                  </p>
+                </div>
+              ) : (
+                <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
+                  <ul className="flex flex-col gap-2">
+                    {actuales.map((a) => {
+                      const horasPerito = horasDesde(a.fecha_envio_perito);
+                      const horasVisita = horasDesde(a.fecha_envio_visita);
+                      return (
+                        <li
+                          key={a.no_avaluo}
+                          className="relative overflow-hidden rounded-xl border border-outline-variant/50 bg-surface p-3 shadow-[0_1px_2px_rgba(24,24,27,0.04)]"
+                        >
+                          <span className={`absolute inset-y-0 left-0 w-1 ${colorEstatus(a.estatus)}`} />
+                          <div className="flex items-center justify-between gap-2 pl-1">
+                            <p className="min-w-0 truncate text-[12px] font-bold tracking-tight text-on-surface">
+                              {a.no_avaluo}
+                            </p>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              <span className="rounded-md bg-surface-container-high px-1.5 py-0.5 text-[10px] font-semibold leading-none text-on-surface-variant">
+                                {a.estatus ?? "—"}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="mt-1 truncate pl-1 text-[11px] font-medium text-on-surface-variant">
+                            {a.solicitante ?? "—"}
+                          </p>
+                          <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
+                            <span className="truncate">{formatFecha(a.fecha_banco)}</span>
+                            <span className="shrink-0 text-outline">·</span>
+                            <span className="truncate">{a.tipo ?? "—"}</span>
+                            <span className="shrink-0 text-outline">·</span>
+                            <span className="truncate">{a.area_solicitud ?? "—"}</span>
+                          </div>
+                          {cargo === "encargado" && (
+                            <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
+                              <span className="truncate">
+                                <span className="font-bold text-on-surface">Perito:</span>{" "}
+                                {a.perito ?? "—"}
+                              </span>
+                              <span className="shrink-0 text-outline">·</span>
+                              <span className="truncate">
+                                <span className="font-bold text-on-surface">Digitador:</span>{" "}
+                                {a.digitador ?? "—"}
+                              </span>
+                            </div>
+                          )}
+                          {cargo === "encargado" ? (
+                            <>
+                              <LineaTiempo fecha={a.fecha_envio_perito} horas={horasPerito} texto="desde solicitud al perito" sin="sin solicitud al perito" />
+                              <LineaTiempo fecha={a.fecha_envio_visita} horas={horasVisita} texto="desde visita del perito" sin="sin visita del perito" />
+                            </>
+                          ) : cargo === "perito" ? (
+                            <LineaTiempo fecha={a.fecha_envio_perito} horas={horasPerito} texto="desde que te solicitaron la visita" sin="sin solicitud de visita" />
+                          ) : (
+                            <LineaTiempo fecha={a.fecha_envio_visita} horas={horasVisita} texto="desde que el perito envió la visita" sin="sin visita recibida" />
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+              {!cargando && !avaluosError && !(!online || (avaluosError && avaluosError.includes("Failed to fetch"))) && totalPaginas > 1 && (
+                <div className="mt-2 flex shrink-0 items-center justify-end gap-3">
+                  <button type="button" onClick={() => setPagina((p) => Math.max(0, p - 1))} disabled={paginaSegura === 0} aria-label="Página anterior"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                  </button>
+                  <span className="text-[11px] font-semibold text-on-surface-variant">{paginaSegura + 1} de {totalPaginas}</span>
+                  <button type="button" onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))} disabled={paginaSegura >= totalPaginas - 1} aria-label="Página siguiente"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant">
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Pestaña Digitadores */}
+          {encargadoTab === "digitadores" && (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {abiertosPorDigitador.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+                    <HugeiconsIcon icon={UserCircleIcon} size={20} strokeWidth={1.5} />
+                  </div>
+                  <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">Sin digitadores</h2>
+                  <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
+                    No hay avalúos abiertos asignados a digitadores.
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {abiertosPorDigitador.map((d) => (
+                    <li key={d.name} className="flex items-center justify-between rounded-xl border border-outline-variant/50 bg-surface p-3 shadow-[0_1px_2px_rgba(24,24,27,0.04)]">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[12px] font-bold text-primary">
+                          {d.name.slice(0, 1)}
+                        </span>
+                        <span className="text-[12px] font-semibold text-on-surface">{d.name}</span>
                       </div>
-                      <p className="mt-1 truncate pl-1 text-[11px] font-medium text-on-surface-variant">
-                        {a.solicitante ?? "—"}
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
-                        <span className="truncate">{formatFecha(a.fecha_banco)}</span>
-                        <span className="shrink-0 text-outline">·</span>
-                        <span className="truncate">{a.tipo ?? "—"}</span>
-                        <span className="shrink-0 text-outline">·</span>
-                        <span className="truncate">{a.area_solicitud ?? "—"}</span>
-                      </div>
-                      {cargo === "encargado" && (
-                        <div className="mt-1.5 flex items-center gap-1.5 pl-1 text-[10.5px] leading-none text-on-surface-variant">
-                          <span className="truncate">
-                            <span className="font-bold text-on-surface">Perito:</span>{" "}
-                            {a.perito ?? "—"}
-                          </span>
-                          <span className="shrink-0 text-outline">·</span>
-                          <span className="truncate">
-                            <span className="font-bold text-on-surface">Digitador:</span>{" "}
-                            {a.digitador ?? "—"}
-                          </span>
-                        </div>
-                      )}
-                      {cargo === "encargado" ? (
-                        <>
-                          <LineaTiempo
-                            fecha={a.fecha_envio_perito}
-                            horas={horasPerito}
-                            texto="desde solicitud al perito"
-                            sin="sin solicitud al perito"
-                          />
-                          <LineaTiempo
-                            fecha={a.fecha_envio_visita}
-                            horas={horasVisita}
-                            texto="desde visita del perito"
-                            sin="sin visita del perito"
-                          />
-                        </>
-                      ) : cargo === "perito" ? (
-                        <LineaTiempo
-                          fecha={a.fecha_envio_perito}
-                          horas={horasPerito}
-                          texto="desde que te solicitaron la visita"
-                          sin="sin solicitud de visita"
-                        />
-                      ) : (
-                        <LineaTiempo
-                          fecha={a.fecha_envio_visita}
-                          horas={horasVisita}
-                          texto="desde que el perito envió la visita"
-                          sin="sin visita recibida"
-                        />
-                      )}
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
+                        {d.count} abiertos
+                      </span>
                     </li>
-                  );
-                })}
-              </ul>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
-          {!cargando && !avaluosError && !(!online || (avaluosError && avaluosError.includes("Failed to fetch"))) && totalPaginas > 1 && (
-            <div className="mt-2 flex shrink-0 items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setPagina((p) => Math.max(0, p - 1))}
-                disabled={paginaSegura === 0}
-                aria-label="Página anterior"
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
-              >
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-              <span className="text-[11px] font-semibold text-on-surface-variant">
-                {paginaSegura + 1} de {totalPaginas}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
-                disabled={paginaSegura >= totalPaginas - 1}
-                aria-label="Página siguiente"
-                className="flex h-7 w-7 items-center justify-center rounded-lg bg-surface-container-high text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-40 disabled:hover:bg-surface-container-high disabled:hover:text-on-surface-variant"
-              >
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 6l6 6-6 6" />
-                </svg>
-              </button>
+
+          {/* Pestaña Peritos */}
+          {encargadoTab === "peritos" && (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {abiertosPorPerito.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center py-10 text-center">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant">
+                    <HugeiconsIcon icon={UserCircleIcon} size={20} strokeWidth={1.5} />
+                  </div>
+                  <h2 className="mt-3 text-[14px] font-bold tracking-tight text-on-surface">Sin peritos</h2>
+                  <p className="mt-1 max-w-[30ch] text-[12px] leading-relaxed text-on-surface-variant">
+                    No hay avalúos abiertos asignados a peritos.
+                  </p>
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {abiertosPorPerito.map((p) => (
+                    <li key={p.name} className="flex items-center justify-between rounded-xl border border-outline-variant/50 bg-surface p-3 shadow-[0_1px_2px_rgba(24,24,27,0.04)]">
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-tertiary/10 text-[12px] font-bold text-tertiary">
+                          {p.name.slice(0, 1)}
+                        </span>
+                        <span className="text-[12px] font-semibold text-on-surface">{p.name}</span>
+                      </div>
+                      <span className="rounded-full bg-tertiary/10 px-2 py-0.5 text-[11px] font-bold text-tertiary">
+                        {p.count} abiertos
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </section>
@@ -1168,7 +1258,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.35
+                    Versión actual: v0.1.36
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button

@@ -267,9 +267,9 @@ if (!gotTheLock) {
 
     const defaultExcelPath = path.join(
       os.homedir(),
+      "OneDrive",
       "Desktop",
-      "widget-avaluo",
-      "EXCEL_MAESTRO.xlsx"
+      "Control 2026 VALTECH.xlsx"
     );
 
     let stopSync = null;
