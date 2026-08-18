@@ -49,31 +49,68 @@ function normalizeHeader(text) {
 
 const NORM_MAP = {
   "fecha banco": "fecha_banco",
+  "fecha que solicita el banco": "fecha_banco",
+  "fec banco": "fecha_banco",
+  "f banco": "fecha_banco",
+  "fecha solicitud banco": "fecha_banco",
   recibe: "recibe",
+  "fecha que recibe la solicitud digitador": "recibe",
+  "fecha recibe solicitud": "recibe",
+  "fec recibe": "recibe",
+  "f recibe": "recibe",
   tipo: "tipo",
   "area de solicitud": "area_solicitud",
+  "area solicitud": "area_solicitud",
   "estatus de peticion": "estatus",
+  "estatus peticion": "estatus",
+  estatus: "estatus",
   codigo: "codigo",
   "no avaluo": "no_avaluo",
+  "no. avaluo": "no_avaluo",
+  "num avaluo": "no_avaluo",
+  correlativo: "no_avaluo",
   "perito de campo": "perito",
+  perito: "perito",
   digitador: "digitador",
   "oficial de credito": "oficial_credito",
   solicitante: "solicitante",
   "identidad rtn": "identidad",
   "no telefono": "telefono",
+  "no. telefono": "telefono",
   propietario: "propietario",
   direccion: "direccion",
   departamento: "departamento",
+  depto: "departamento",
   "sucursal basa": "sucursal",
+  sucursal: "sucursal",
   "sitio avaluo": "sitio_avaluo",
   categoria: "categoria",
   observaciones: "observaciones",
+  obs: "observaciones",
   "tiempo de entrega dentro 12 24 48 horas": "tiempo_entrega",
   tiempo: "tiempo",
   "dias abierto": "dias_abierto",
   "encuesta a cliente de tiempo estimado de recibida solicitud": "encuesta",
+  encuesta: "encuesta",
   "fecha envio solicitud a perito": "fecha_envio_perito",
   "fecha envio visita de campo": "fecha_envio_visita",
+  "fecha que perito envia visita de campo": "fecha_envio_visita",
+  "fecha envio perito": "fecha_envio_perito",
+  "fecha envio visita": "fecha_envio_visita",
+  "fecha perito": "fecha_envio_perito",
+  "fecha visita": "fecha_envio_visita",
+  "fec envio perito": "fecha_envio_perito",
+  "fec envio visita": "fecha_envio_visita",
+  "fec perito": "fecha_envio_perito",
+  "fec visita": "fecha_envio_visita",
+  "f envio perito": "fecha_envio_perito",
+  "f envio visita": "fecha_envio_visita",
+  "f perito": "fecha_envio_perito",
+  "f visita": "fecha_envio_visita",
+  "envio perito": "fecha_envio_perito",
+  "envio visita": "fecha_envio_visita",
+  "envia perito": "fecha_envio_perito",
+  "envia visita": "fecha_envio_visita",
 };
 
 function excelSerialToDate(serial) {
@@ -84,32 +121,100 @@ function excelSerialToDate(serial) {
 
 function toCleanString(v) {
   if (v === null || v === undefined) return null;
-  const s = String(v).trim();
+  const s = String(v).trim().toUpperCase().replace(/\s+/g, " ");
   return s === "" ? null : s;
 }
 
 function toCleanDate(v) {
   if (v === null || v === undefined) return null;
-  let iso = null;
+
+  // 1. Date nativo de JS (cellDates: true de XLSX ya lo convierte)
   if (v instanceof Date && !isNaN(v.getTime())) {
-    iso = v.toISOString().slice(0, 10);
-  } else if (typeof v === "number" && isFinite(v)) {
+    const iso = v.toISOString().slice(0, 10);
+    const y = Number(iso.slice(0, 4));
+    if (!Number.isNaN(y) && y >= 2000) return iso;
+    return null;
+  }
+
+  // 2. Numero de serie de Excel (45500, 46200, etc.)
+  if (typeof v === "number" && isFinite(v)) {
     const d = excelSerialToDate(v);
-    iso = d ? d.toISOString().slice(0, 10) : null;
-  } else {
-    const s = toCleanString(v);
-    if (s) {
-      const parsed = new Date(s);
-      if (!isNaN(parsed.getTime())) iso = parsed.toISOString().slice(0, 10);
+    if (d) {
+      const iso = d.toISOString().slice(0, 10);
+      const y = Number(iso.slice(0, 4));
+      if (!Number.isNaN(y) && y >= 2000) return iso;
+    }
+    return null;
+  }
+
+  // 3. Texto: probar formatos comunes del Excel
+  const raw = String(v).trim();
+  if (!raw) return null;
+
+  // Si el texto es un numero puro (serial de Excel guardado como texto)
+  const asNum = Number(raw);
+  if (!Number.isNaN(asNum) && isFinite(asNum) && asNum > 0 && asNum < 100000) {
+    const d = excelSerialToDate(asNum);
+    if (d) {
+      const iso = d.toISOString().slice(0, 10);
+      const y = Number(iso.slice(0, 4));
+      if (!Number.isNaN(y) && y >= 2000) return iso;
+    }
+    return null;
+  }
+
+  // Intentar formato ISO directo: 2026-08-18
+  const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (isoMatch) {
+    const [, y, m, d] = isoMatch;
+    if (Number(y) >= 2000 && Number(m) >= 1 && Number(m) <= 12 && Number(d) >= 1 && Number(d) <= 31) {
+      return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
     }
   }
-  // Excel guarda celdas de fecha vacias como serial 0 -> 30/12/1899.
-  // Fechas antes del 2000 no son reales: se tratan como vacio.
-  if (iso) {
-    const y = Number(iso.slice(0, 4));
-    if (Number.isNaN(y) || y < 2000) iso = null;
+
+  // Intentar DD/MM/YYYY o DD-MM-YYYY o DD.MM.YYYY
+  const slashMatch = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (slashMatch) {
+    const [, dd, mm, yyyy] = slashMatch;
+    if (Number(yyyy) >= 2000 && Number(mm) >= 1 && Number(mm) <= 12 && Number(dd) >= 1 && Number(dd) <= 31) {
+      return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    }
   }
-  return iso;
+
+  // Intentar DD/MM/YY (2 digitos)
+  const shortYear = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})$/);
+  if (shortYear) {
+    const [, dd, mm, yy] = shortYear;
+    const yyyy = Number(yy) >= 50 ? `19${yy}` : `20${yy}`;
+    if (Number(mm) >= 1 && Number(mm) <= 12 && Number(dd) >= 1 && Number(dd) <= 31) {
+      return `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    }
+  }
+
+  // Intentar DD-Mes-YYYY (18-Ago-2026, 18/ago/2026, etc.)
+  const MONTHS = {
+    ENE: "01", JAN: "01", FEB: "02", MAR: "03", ABR: "04", APR: "04",
+    MAY: "05", JUN: "06", JUL: "07", AGO: "08", AUG: "08", SEP: "09",
+    OCT: "10", NOV: "11", DIC: "12", DEC: "12",
+  };
+  const monthMatch = raw.match(/^(\d{1,2})[\/\-. ]+([A-Za-z]{3,9})[\/\-. ]+(\d{4})$/);
+  if (monthMatch) {
+    const [, dd, mon, yyyy] = monthMatch;
+    const mm = MONTHS[mon.toUpperCase().slice(0, 3)];
+    if (mm && Number(yyyy) >= 2000 && Number(dd) >= 1 && Number(dd) <= 31) {
+      return `${yyyy}-${mm}-${String(dd).padStart(2, "0")}`;
+    }
+  }
+
+  // Intentar con Date() como ultimo recurso (YYYY-MM-DD, etc.)
+  const parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) {
+    const iso = parsed.toISOString().slice(0, 10);
+    const y = Number(iso.slice(0, 4));
+    if (!Number.isNaN(y) && y >= 2000) return iso;
+  }
+
+  return null;
 }
 
 function toCleanNumber(v) {
@@ -139,8 +244,29 @@ function parseWorkbook(filePath) {
     const colMap = [];
     headers.forEach((h, idx) => {
       let key = NORM_MAP[h];
-      if (!key && h.includes("fecha envio") && h.includes("perito")) key = "fecha_envio_perito";
-      if (!key && h.includes("fecha envio") && h.includes("visita")) key = "fecha_envio_visita";
+      if (!key) {
+        const has = (w) => h.includes(w);
+        const hasAny = (...ws) => ws.some(has);
+
+        if (has("fecha") && hasAny("banco", "solicitud") && !has("perito") && !has("visita") && !has("recibe"))
+          key = "fecha_banco";
+        else if (has("fecha") && hasAny("recibe", "solicitud") && hasAny("digitador") && !has("perito") && !has("visita"))
+          key = "recibe";
+        else if (hasAny("fecha", "fec", "f") && has("envio") && has("perito"))
+          key = "fecha_envio_perito";
+        else if (hasAny("fecha", "fec", "f") && has("perito") && !has("visita") && !has("campo"))
+          key = "fecha_envio_perito";
+        else if (has("perito") && hasAny("envio", "envia", "enviar"))
+          key = "fecha_envio_perito";
+        else if (hasAny("fecha", "fec", "f") && has("envio") && has("visita"))
+          key = "fecha_envio_visita";
+        else if (hasAny("fecha", "fec", "f") && hasAny("visita", "campo") && !has("perito"))
+          key = "fecha_envio_visita";
+        else if (hasAny("visita", "campo") && hasAny("envio", "envia", "enviar"))
+          key = "fecha_envio_visita";
+        else if (hasAny("f", "fec") && has("perito")) key = "fecha_envio_perito";
+        else if (hasAny("f", "fec") && hasAny("visita", "campo")) key = "fecha_envio_visita";
+      }
       if (key) colMap[idx] = key;
     });
     const DATE_KEYS = new Set(["fecha_banco", "recibe", "fecha_envio_perito", "fecha_envio_visita"]);
@@ -158,6 +284,7 @@ function parseWorkbook(filePath) {
         else rec[key] = toCleanString(v);
       }
       if (!rec.no_avaluo) continue;
+      if (!/[A-Z0-9]/.test(rec.no_avaluo)) continue;
       out.push(rec);
     }
   }

@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getConfig: () => ipcRenderer.invoke("config:get"),
   setConfig: (payload) => ipcRenderer.invoke("config:set", payload),
   pickExcel: () => ipcRenderer.invoke("dialog:pick-excel"),
+  parseExcel: (filePath) => ipcRenderer.invoke("excel:parse", filePath),
   onSyncStatus: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("sync:status", listener);

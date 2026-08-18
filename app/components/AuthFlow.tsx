@@ -238,6 +238,7 @@ export default function AuthFlow() {
     if (!supabase) return;
     const client = supabase;
     let cancelled = false;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     const cargar = async () => {
       const { data, error } = await client
         .from("avaluos")
@@ -254,10 +255,28 @@ export default function AuthFlow() {
       setAvaluos((data as Avaluo[]) ?? []);
     };
     cargar();
+
+    // Suscripcion en tiempo real con debounce: cuando el sync del encargado
+    // envia cientos de cambios en lote, se agrupan y solo se recarga una vez.
+    const channel = client
+      .channel("avaluos-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "avaluos" },
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(cargar, 500);
+        }
+      )
+      .subscribe();
+
+    // Polling como respaldo (si realtime falla o se desconecta)
     const id = window.setInterval(cargar, 30_000);
     return () => {
       cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
       window.clearInterval(id);
+      client.removeChannel(channel);
     };
   }, []);
 
@@ -1149,7 +1168,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.34
+                    Versión actual: v0.1.35
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button

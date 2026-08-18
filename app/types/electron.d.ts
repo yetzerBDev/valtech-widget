@@ -23,6 +23,9 @@ declare global {
       getConfig: () => Promise<{ excelPath?: string }>;
       setConfig: (payload: { excelPath?: string }) => Promise<{ excelPath?: string }>;
       pickExcel: () => Promise<string | null>;
+      parseExcel: (
+        filePath: string
+      ) => Promise<{ records?: Record<string, unknown>[]; count?: number; error?: string }>;
       onSyncStatus: (callback: (payload: { message: string }) => void) => () => void;
       setNotifyUser: (payload: { cargo: string; nombre: string } | null) => void;
     };

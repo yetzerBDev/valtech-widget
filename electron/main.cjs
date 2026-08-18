@@ -341,11 +341,24 @@ if (!gotTheLock) {
     ipcMain.handle("dialog:pick-excel", async () => {
       const res = await dialog.showOpenDialog(mainWindow, {
         title: "Selecciona el Excel maestro",
-        filters: [{ name: "Excel", extensions: ["xlsx"] }],
+        filters: [{ name: "Excel", extensions: ["xlsx", "xls"] }],
         properties: ["openFile"],
       });
       if (res.canceled || !res.filePaths[0]) return null;
       return res.filePaths[0];
+    });
+
+    ipcMain.handle("excel:parse", async (_event, filePath) => {
+      if (!filePath || typeof filePath !== "string") {
+        return { error: "Ruta de archivo no válida" };
+      }
+      try {
+        const { parseWorkbook } = require("./sync-watch.cjs");
+        const records = parseWorkbook(filePath);
+        return { records, count: records.length };
+      } catch (err) {
+        return { error: err?.message ?? String(err) };
+      }
     });
 
     createWindow();
