@@ -581,12 +581,14 @@ export default function AuthFlow() {
     const conVisita = visibles.filter(tieneVisita);
 
     // Agrupar TODOS los visibles por digitador y perito (abiertos + con visita)
-    const agrupar = (lista: Avaluo[], key: "digitador" | "perito") => {
+    const agrupar = (lista: Avaluo[], key: "digitador" | "perito", exclude?: string[]) => {
+      const excludeSet = exclude ? new Set(exclude) : null;
       const map = new Map<string, { display: string; count: number }>();
       for (const a of lista) {
         const raw = (a[key] ?? "").trim();
         if (!raw) continue;
         const norm = normalizeNombre(raw);
+        if (!norm || norm === "n a" || norm === "na" || (excludeSet && excludeSet.has(norm))) continue;
         const existing = map.get(norm);
         if (existing) {
           existing.count++;
@@ -598,7 +600,8 @@ export default function AuthFlow() {
         .sort((a, b) => b.count - a.count)
         .map((v) => ({ name: v.display, count: v.count }));
     };
-    const abiertosPorDigitador = agrupar(visibles, "digitador");
+    const peritosNombres = ["tom", "jorge", "julio perdomo"];
+    const abiertosPorDigitador = agrupar(visibles, "digitador", peritosNombres);
     const abiertosPorPerito = agrupar(visibles, "perito");
 
     const todosActuales = encargadoTab === "avaluos" ? (widgetTab === "abiertos" ? abiertos : conVisita) : [];
@@ -1266,7 +1269,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.38
+                    Versión actual: v0.1.39
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button
