@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Usuario - Widget Avalúo</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a1a2e; background: #fff; line-height: 1.6; }
+
+  /* PORTADA */
+  .cover {
+    width: 100%; height: 100vh; min-height: 1122px;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; text-align: center; page-break-after: always; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 40%, rgba(99,102,241,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(168,85,247,0.1) 0%, transparent 50%);
+  }
+  .cover * { position: relative; z-index: 1; }
+  .cover-logo { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 32px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); }
+  .cover-logo svg { width: 44px; height: 44px; }
+  .cover h1 { font-size: 42px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .cover h2 { font-size: 20px; font-weight: 400; opacity: 0.8; margin-bottom: 48px; }
+  .cover-meta { font-size: 14px; opacity: 0.5; }
+  .cover-badge { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 16px; font-size: 13px; margin-bottom: 40px; }
+
+  /* CONTENIDO */
+  .content { max-width: 780px; margin: 0 auto; padding: 48px 40px; }
+  h2.section-title {
+    font-size: 28px; font-weight: 800; color: #0f0c29; margin: 48px 0 8px 0;
+    padding-bottom: 12px; border-bottom: 3px solid #6366f1;
+    page-break-before: always;
+  }
+  h2.section-title:first-of-type { page-break-before: auto; }
+  h3 { font-size: 18px; font-weight: 700; color: #302b63; margin: 28px 0 12px 0; }
+  h4 { font-size: 15px; font-weight: 600; color: #4338ca; margin: 20px 0 8px 0; }
+  p, li { font-size: 14px; line-height: 1.7; }
+  p { margin-bottom: 12px; }
+  ul, ol { padding-left: 24px; margin-bottom: 16px; }
+  li { margin-bottom: 6px; }
+
+  /* PASOS */
+  .step {
+    display: flex; gap: 16px; margin-bottom: 20px; padding: 16px;
+    background: #f8fafc; border-radius: 12px; border-left: 4px solid #6366f1;
+    page-break-inside: avoid;
+  }
+  .step-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: #6366f1; color: #fff; font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-text { flex: 1; }
+  .step-text strong { color: #302b63; }
+
+  /* PLACEHOLDER IMAGEN */
+  .screenshot {
+    width: 100%; min-height: 220px; background: #f1f5f9; border: 2px dashed #cbd5e1;
+    border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; margin: 16px 0; page-break-inside: avoid; position: relative;
+  }
+  .screenshot svg { width: 40px; height: 40px; color: #94a3b8; margin-bottom: 8px; }
+  .screenshot span { font-size: 12px; color: #94a3b8; font-weight: 500; }
+  .screenshot small { font-size: 11px; color: #cbd5e1; margin-top: 4px; }
+
+  /* NOTA */
+  .note {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+    padding: 14px 16px; margin: 16px 0; font-size: 13px; color: #1e40af;
+    page-break-inside: avoid;
+  }
+  .note strong { color: #1e3a8a; }
+  .note.warning { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+  .note.warning strong { color: #78350f; }
+
+  /* TABLA */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; page-break-inside: avoid; }
+  th { background: #302b63; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* BADGE */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef9c3; color: #854d0e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+
+  /* TOC */
+  .toc { background: #f8fafc; border-radius: 16px; padding: 32px; margin: 32px 0; }
+  .toc h3 { margin-top: 0; color: #0f0c29; }
+  .toc ul { list-style: none; padding: 0; }
+  .toc li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+  .toc li:last-child { border-bottom: none; }
+  .toc a { color: #4338ca; text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media print {
+    .cover { height: 100vh; }
+    .content { padding: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== PORTADA ===================== -->
+<div class="cover">
+  <div class="cover-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  </div>
+  <h1>Widget Avalúo</h1>
+  <h2>Manual de Usuario</h2>
+  <div class="cover-badge">Sistema de Gestión de Avalúos Inmobiliarios</div>
+  <div class="cover-meta">
+    Versión 0.1.39 &nbsp;·&nbsp; VALTECH &nbsp;·&nbsp; Agosto 2026
+  </div>
+</div>
+
+<!-- ===================== CONTENIDO ===================== -->
+<div class="content">
+
+  <!-- TABLA DE CONTENIDOS -->
+  <div class="toc">
+    <h3>Contenido</h3>
+    <ul>
+      <li><strong>1.</strong> <a href="#general">Información General</a></li>
+      <li><strong>2.</strong> <a href="#instalacion">Instalación del Widget</a></li>
+      <li><strong>3.</strong> <a href="#login">Inicio de Sesión</a></li>
+      <li><strong>4.</strong> <a href="#encargado">Guía para Encargados</a></li>
+      <li><strong>5.</strong> <a href="#perito">Guía para Peritos</a></li>
+      <li><strong>6.</strong> <a href="#digitador">Guía para Digitadores</a></li>
+      <li><strong>7.</strong> <a href="#soporte">Solución de Problemas</a></li>
+    </ul>
+  </div>
+
+  <!-- ===================== 1. INFORMACIÓN GENERAL ===================== -->
+  <h2 class="section-title" id="general">1. Información General</h2>
+
+  <p>El <strong>Widget Avalúo</strong> es una aplicación de escritorio (Windows) y móvil (PWA) que permite visualizar y gestionar los avalúos inmobiliarios de VALTECH en tiempo real. Se sincroniza automáticamente con los datos del Excel maestro.</p>
+
+  <h3>¿Qué puede hacer cada rol?</h3>
+  <table>
+    <tr><th>Rol</th><th>Funciones</th></tr>
+    <tr>
+      <td><span class="badge badge-blue">Encargado</span></td>
+      <td>Ver todos los avalúos, configurar sincronización, ver tablero de digitadores y peritos, gestionar rutas de Excel</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-green">Perito</span></td>
+      <td>Ver sus avalúos asignados, ver fechas de solicitud y visita</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">Digitador</span></td>
+      <td>Ver avalúos que está digitando, ver fechas de solicitud y visita</td>
+    </tr>
+  </table>
+
+  <h3>Colores de estatus</h3>
+  <table>
+    <tr><th>Color</th><th>Significado</th></tr>
+    <tr><td><span class="badge badge-green">Verde</span></td><td>En proceso / Abierto</td></tr>
+    <tr><td><span class="badge badge-yellow">Amarillo</span></td><td>Pendiente</td></tr>
+    <tr><td><span class="badge badge-red">Rojo</span></td><td>Retrasado / Urgente</td></tr>
+    <tr><td><span class="badge" style="background:#e2e8f0;color:#475569;">Gris</span></td><td>Cerrado / Stand</td></tr>
+  </table>
+
+  <!-- ===================== 2. INSTALACIÓN ===================== -->
+  <h2 class="section-title" id="instalacion">2. Instalación del Widget</h2>
+
+  <h3>2.1 Instalación en Windows (Escritorio)</h3>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-text">
+      <strong>Descargar el instalador</strong><br>
+      Abra el navegador y vaya a:<br>
+      <code>https://github.com/yetzerBDev/valtech-widget/releases/latest</code><br>
+      Descargue el archivo <code>widget-avaluo-setup-X.X.XX.exe</code>
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Página de descarga en GitHub ]</span>
+    <small>Insertar imagen de la página de releases</small>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-text">
+      <strong>Ejecutar el instalador</strong><br>
+      Haga doble clic en el archivo descargado. Windows puede mostrar una advertencia de seguridad — haga clic en <strong>"Más información"</strong> y luego en <strong>"Ejecutar de todas formas"</strong>.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Ventana de SmartScreen de Windows ]</span>
+    <small>Insertar captura del aviso de seguridad</small>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-text">
+      <strong>Siguiendo el asistente</strong><br>
+      Haga clic en <strong>Siguiente</strong> en todas las pantallas del instalador. El widget se instalará en su carpeta de programas.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-text">
+      <strong>Ejecutar el widget</strong><br>
+      Busque <strong>"Widget Avalúo"</strong> en el menú Inicio o en el escritorio. Se creará un acceso directo automáticamente.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Widget abierto - Pantalla de login ]</span>
+    <small>Insertar captura del widget recién abierto</small>
+  </div>
+
+  <div class="note">
+    <strong>Nota:</strong> El widget se actualiza automáticamente cuando hay una nueva versión. No necesita volver a descargar el instalador.
+  </div>
+
+  <h3>2.2 Instalación en Móvil (PWA)</h3>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-text">
+      <strong>Abrir en Safari (iPhone)</strong> o <strong>Chrome (Android)</strong><br>
+      Navegue a la dirección del sistema que le proporcionó el administrador.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-text">
+      <strong>iPhone:</strong> Tocar el botón de compartir <strong>⬆️</strong> y seleccionar <strong>"Agregar a pantalla de inicio"</strong>.<br>
+      <strong>Android:</strong> Tocar los tres puntos <strong>⋮</strong> y seleccionar <strong>"Instalar aplicación"</strong>.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Menú de compartir en Safari / Chrome ]</span>
+    <small>Insertar captura del menú de instalación PWA</small>
+  </div>
+
+  <!-- ===================== 3. INICIO DE SESIÓN ===================== -->
+  <h2 class="section-title" id="login">3. Inicio de Sesión</h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-text">
+      <strong>Abrir el widget</strong> o la aplicación en su teléfono.
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-text">
+      <strong>Ingresar su correo electrónico</strong><br>
+      Use el correo que le fue asignado por el administrador del sistema.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Pantalla de login con campo de correo ]</span>
+    <small>Insertar captura del formulario de inicio de sesión</small>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-text">
+      <strong>Verificar su correo</strong><br>
+      Recibirá un código de verificación en su correo. Ingrese el código en la pantalla del widget. El código expira en 5 minutos.
+    </div>
+  </div>
+
+  <div class="note warning">
+    <strong>Importante:</strong> Si no ve el correo de verificación, revise la carpeta de <strong>spam o correo no deseado</strong>. El correo viene de Supabase Auth.
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-text">
+      <strong>¡Listo!</strong> Al verificar el código, el sistema detectará automáticamente su rol (Encargado, Perito o Digitador) y le mostrará la vista correspondiente.
+    </div>
+  </div>
+
+  <!-- ===================== 4. GUÍA ENCARGADO ===================== -->
+  <h2 class="section-title" id="encargado">4. Guía para Encargados</h2>
+
+  <p>El encargado tiene acceso completo a toda la información y puede configurar la sincronización con el Excel maestro.</p>
+
+  <h3>4.1 Vista General</h3>
+  <p>Al iniciar sesión como encargado, verá tres pestañas principales:</p>
+
+  <table>
+    <tr><th>Pestaña</th><th>Contenido</th></tr>
+    <tr><td><strong>Avalúos</strong></td><td>Todos los avalúos activos, con sub-tabs "Abiertos" y "Con visita"</td></tr>
+    <tr><td><strong>Digitadores</strong></td><td>Lista de digitadores y cantidad de avalúos asignados</td></tr>
+    <tr><td><strong>Peritos</strong></td><td>Lista de peritos y cantidad de avalúos asignados</td></tr>
+  </table>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Vista del encargado con las 3 pestañas ]</span>
+    <small>Insertar captura mostrando Avalúos, Digitadores y Peritos</small>
+  </div>
+
+  <h3>4.2 Pestaña Avalúos</h3>
+  <p>Los avalúos se dividen en dos sub-categorías:</p>
+
+  <h4>Abiertos</h4>
+  <p>Avalúos que aún no tienen fecha de visita de campo. Cada tarjeta muestra:</p>
+  <ul>
+    <li>Número de avalúo (correlativo)</li>
+    <li>Estatus (Abierto, Pendiente, etc.)</li>
+    <li>Nombre del solicitante</li>
+    <li>Fecha de solicitud, tipo y área</li>
+    <li>Nombre del perito y digitador asignados</li>
+    <li>Línea de tiempo: "desde solicitud al perito" y "desde visita del perito"</li>
+  </ul>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Lista de avalúos abiertos ]</span>
+    <small>Insertar captura de tarjetas de avalúos</small>
+  </div>
+
+  <h4>Con Visita</h4>
+  <p>Avalúos que ya tienen fecha de visita de campo registrada. Muestra el mismo formato que los abiertos.</p>
+
+  <h3>4.3 Pestaña Digitadores</h3>
+  <p>Muestra un listado de digitadores con la cantidad total de avalúos asignados (abiertos + con visita).</p>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Tab de Digitadores con conteo ]</span>
+    <small>Insertar captura del tab de digitadores</small>
+  </div>
+
+  <h3>4.4 Pestaña Peritos</h3>
+  <p>Muestra un listado de peritos con la cantidad total de avalúos asignados.</p>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Tab de Peritos con conteo ]</span>
+    <small>Insertar captura del tab de peritos</small>
+  </div>
+
+  <h3>4.5 Configuración de Sincronización</h3>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-text">
+      <strong>Haga clic en el engranaje ⚙️</strong> en la esquina superior derecha del widget.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Botón de configuración (engranaje) ]</span>
+    <small>Insertar captura señalando el ícono de configuración</small>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-text">
+      <strong>Ingrese la ruta del Excel maestro</strong><br>
+      Haga clic en <strong>"Buscar"</strong> y navegue hasta el archivo <code>Control 2026 VALTECH.xlsx</code> en su computadora.
+    </div>
+  </div>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Modal de configuración con campo de ruta ]</span>
+    <small>Insertar captura del diálogo de configuración</small>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-text">
+      <strong>Haga clic en "Guardar"</strong><br>
+      La sincronización se activará automáticamente. Cada vez que guarde el Excel, el widget lo detectará y subirá los cambios.
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Tip:</strong> El indicador de sincronización (punto azul 🔵) confirma que el widget está conectado con el Excel. Si se vuelve rojo 🔴, revise la ruta del archivo.
+  </div>
+
+  <h3>4.6 Indicadores de la Barra Superior</h3>
+  <table>
+    <tr><th>Elemento</th><th>Significado</th></tr>
+    <tr><td>🟢 Punto verde parpadeante</td><td>Conexión activa a internet</td></tr>
+    <tr><td>🔵 Punto azul</td><td>Sincronización con Excel exitosa</td></tr>
+    <tr><td>🔴 Punto rojo</td><td>Error de sincronización</td></tr>
+    <tr><td>⬇️ Botón "Actualizar"</td><td>Nueva versión disponible — descargando o lista para instalar</td></tr>
+    <tr><td>⚙️ Engranaje</td><td>Configuración de sincronización (solo encargado)</td></tr>
+    <tr><td>🚪 Botón cerrar sesión</td><td>Cerrar sesión actual</td></tr>
+  </table>
+
+  <!-- ===================== 5. GUÍA PERITO ===================== -->
+  <h2 class="section-title" id="perito">5. Guía para Peritos</h2>
+
+  <p>Como perito, verá únicamente los avalúos que le han sido asignados.</p>
+
+  <h3>5.1 Tabs Disponibles</h3>
+  <ul>
+    <li><strong>Abiertos:</strong> Avalúos que le asignaron pero que aún no tienen fecha de visita</li>
+    <li><strong>Con visita:</strong> Avalúos donde ya registró la fecha de visita de campo</li>
+  </ul>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Vista del perito con tabs Abiertos / Con visita ]</span>
+    <small>Insertar captura de la vista perito</small>
+  </div>
+
+  <h3>5.2 Información en Cada Tarjeta</h3>
+  <ul>
+    <li><strong>Número de avalúo</strong> — Correlativo único</li>
+    <li><strong>Estatus</strong> — Estado actual del avalúo</li>
+    <li><strong>Solicitante</strong> — Nombre del banco o entidad solicitante</li>
+    <li><strong>Fecha de solicitud</strong> — Cuándo se recibió la solicitud</li>
+    <li><strong>Tipo y Área</strong> — Tipo de avalúo y área de solicitud</li>
+    <li><strong>Línea de tiempo</strong> — "Desde que te solicitaron la visita" o "Sin solicitud de visita"</li>
+  </ul>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Detalle de una tarjeta de avalúo (perito) ]</span>
+    <small>Insertar captura señalando los campos de la tarjeta</small>
+  </div>
+
+  <h3>5.3 Indicadores de Tiempo</h3>
+  <ul>
+    <li><strong>Verde:</strong> Tiempo dentro del rango esperado</li>
+    <li><strong>Amarillo:</strong> Tiempo接近ando el límite</li>
+    <li><strong>Rojo:</strong> Tiempo excedido — requiere atención</li>
+  </ul>
+
+  <!-- ===================== 6. GUÍA DIGITADOR ===================== -->
+  <h2 class="section-title" id="digitador">6. Guía para Digitadores</h2>
+
+  <p>Como digitador, verá únicamente los avalúos que está procesando digitalmente.</p>
+
+  <h3>6.1 Tabs Disponibles</h3>
+  <ul>
+    <li><strong>Abiertos:</strong> Avalúos que le asignaron pero que aún no tienen fecha de visita</li>
+    <li><strong>Con visita:</strong> Avalúos donde el perito ya registró la visita</li>
+  </ul>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Vista del digitador con tabs Abiertos / Con visita ]</span>
+    <small>Insertar captura de la vista digitador</small>
+  </div>
+
+  <h3>6.2 Información en Cada Tarjeta</h3>
+  <ul>
+    <li><strong>Número de avalúo</strong> — Correlativo único</li>
+    <li><strong>Estatus</strong> — Estado actual del avalúo</li>
+    <li><strong>Solicitante</strong> — Nombre del banco o entidad</li>
+    <li><strong>Fecha de solicitud</strong> — Cuándo se recibió</li>
+    <li><strong>Tipo y Área</strong> — Tipo de avalúo y área</li>
+    <li><strong>Línea de tiempo</strong> — "Desde que el perito envió la visita" o "Sin visita recibida"</li>
+  </ul>
+
+  <div class="screenshot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+    <span>[ Captura: Detalle de tarjeta de avalúo (digitador) ]</span>
+    <small>Insertar captura de la tarjeta con sus campos</small>
+  </div>
+
+  <!-- ===================== 7. SOLUCIÓN DE PROBLEMAS ===================== -->
+  <h2 class="section-title" id="soporte">7. Solución de Problemas</h2>
+
+  <table>
+    <tr><th>Problema</th><th>Solución</th></tr>
+    <tr>
+      <td>No puedo iniciar sesión</td>
+      <td>Verifique que está usando el correo correcto. Revise spam para el código de verificación.</td>
+    </tr>
+    <tr>
+      <td>No veo mis avalúos</td>
+      <td>Contacte al encargado para verificar que su nombre está correctamente asignado en el Excel.</td>
+    </tr>
+    <tr>
+      <td>El widget muestra "Sin conexión"</td>
+      <td>Verifique su conexión a internet. El widget se actualizará automáticamente al reconectarse.</td>
+    </tr>
+    <tr>
+      <td>Punto rojo 🔴 en la barra</td>
+      <td>Error de sincronización. El encargado debe revisar la ruta del Excel en Configuración ⚙️.</td>
+    </tr>
+    <tr>
+      <td>Las fechas no aparecen</td>
+      <td>El encargado debe abrir el Excel y guardarlo (Ctrl+S) para actualizar los datos en caché.</td>
+    </tr>
+    <tr>
+      <td>Quiero actualizar el widget</td>
+      <td>El widget se actualiza solo. Si ve un botón "Actualizar" azul, haga clic para reiniciar.</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <strong>Soporte técnico:</strong> Si el problema persiste, contacte al administrador del sistema o al equipo de desarrollo de VALTECH.
+  </div>
+
+  <br><br>
+  <p style="text-align:center; color:#94a3b8; font-size:12px;">
+    Widget Avalúo v0.1.39 — VALTECH &copy; 2026 — Manual de Usuario
+  </p>
+</div>
+
+</body>
+</html>
