@@ -580,7 +580,7 @@ export default function AuthFlow() {
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
 
-    // Agrupar abiertos por digitador y perito (para tabs del encargado)
+    // Agrupar TODOS los visibles por digitador y perito (abiertos + con visita)
     const agrupar = (lista: Avaluo[], key: "digitador" | "perito") => {
       const map = new Map<string, { display: string; count: number }>();
       for (const a of lista) {
@@ -598,8 +598,8 @@ export default function AuthFlow() {
         .sort((a, b) => b.count - a.count)
         .map((v) => ({ name: v.display, count: v.count }));
     };
-    const abiertosPorDigitador = agrupar(abiertos, "digitador");
-    const abiertosPorPerito = agrupar(abiertos, "perito");
+    const abiertosPorDigitador = agrupar(visibles, "digitador");
+    const abiertosPorPerito = agrupar(visibles, "perito");
 
     const todosActuales = encargadoTab === "avaluos" ? (widgetTab === "abiertos" ? abiertos : conVisita) : [];
     const totalPaginas = Math.max(1, Math.ceil(todosActuales.length / POR_PAGINA));
@@ -1266,7 +1266,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.37
+                    Versión actual: v0.1.38
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button
