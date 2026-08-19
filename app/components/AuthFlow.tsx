@@ -180,9 +180,15 @@ export default function AuthFlow() {
       const standalone = mq.matches || ("standalone" in navigator && (navigator as { standalone?: boolean }).standalone === true);
       setEsPwa(!widget && standalone);
       if (supabase) {
-        supabase.auth.getSession().then(({ data }) => {
-          setUser(data.session?.user ?? null);
-        });
+        const s = supabase;
+        s.auth.getSession().then(({ data, error }) => {
+          if (error || !data.session) {
+            setUser(null);
+            if (error) s.auth.signOut().catch(() => {});
+            return;
+          }
+          setUser(data.session.user);
+        }).catch(() => setUser(null));
       }
     }, 0);
     return () => window.clearTimeout(id);
@@ -190,7 +196,13 @@ export default function AuthFlow() {
 
   useEffect(() => {
     if (!supabase) return;
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    const s = supabase;
+    const { data } = s.auth.onAuthStateChange((_event, session) => {
+      if (_event === "TOKEN_REFRESHED" && !session) {
+        s.auth.signOut().catch(() => {});
+        setUser(null);
+        return;
+      }
       setUser(session?.user ?? null);
     });
     return () => data.subscription.unsubscribe();
@@ -249,6 +261,11 @@ export default function AuthFlow() {
         .order("recibe", { ascending: true });
       if (cancelled) return;
       if (error) {
+        if (error.message?.includes("JWT") || error.message?.includes("expired") || error.message?.includes("invalid")) {
+          client.auth.signOut().catch(() => {});
+          setUser(null);
+          return;
+        }
         setAvaluosError(error.message);
         return;
       }
@@ -365,8 +382,15 @@ export default function AuthFlow() {
         { id: user.id, email: user.email ?? "", nombre },
         { onConflict: "id" }
       );
-      if (error || cancelled) return;
-      await cargarPerfil();
+      if (error) {
+        if (error.message?.includes("JWT") || error.message?.includes("expired") || error.message?.includes("invalid")) {
+          client.auth.signOut().catch(() => {});
+          setUser(null);
+          return;
+        }
+        return;
+      }
+      if (!cancelled) await cargarPerfil();
     })();
 
     const channel = client
@@ -1269,7 +1293,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.39
+                    Versión actual: v0.1.40
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button

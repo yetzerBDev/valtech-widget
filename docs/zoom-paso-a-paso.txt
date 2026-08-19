@@ -1,0 +1,269 @@
+ZOOM PASO A PASO - WIDGET AVALÚO
+===================================
+Guía de presentación con diálogos para mostrar en pantalla
+
+========================================
+PASO 1 - BIENVENIDA
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget abierto (pantalla de login)
+
+💬 DIALOGO:
+
+"Buenos días/tardes, gracias por conectarse. Hoy les voy a enseñar a usar el Widget Avalúo, que es donde van a poder ver todos los avalúos de VALTECH en tiempo real, desde su celular o computadora."
+
+"El widget les va a mostrar únicamente los avalúos que le corresponden a cada uno. Si son perito, van a ver solo los suyos. Si son digitador, van a ver los suyos. Y si son encargado, van a ver todos."
+
+"Vamos a empezar paso a paso."
+
+========================================
+PASO 2 - INSTALACIÓN EN COMPUTADORA
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Navegador abierto en la página de GitHub
+
+💬 DIALOGO:
+
+"Primero, para los que van a usarlo en la computadora, van a abrir su navegador — puede ser Chrome, Edge o el que tengan — y van a escribir esta dirección:"
+
+(Mostrar en pantalla: https://github.com/yetzerBDev/valtech-widget/releases/latest)
+
+"Les va a salir esta página. Aquí van a descargar el archivo que dice widget-avaluo-setup. Le dan clic y se les va a descargar un archivo .exe"
+
+"Cuando se descargue, le dan doble clic para ejecutarlo."
+
+🎬 MOSTRAR EN PANTALLA: Pantalla de SmartScreen de Windows
+
+"Algo así les puede salir, es normal. Aquí le dan donde dice 'Más información' y luego 'Ejecutar de todas formas'. No se preocupen, es seguro."
+
+🎬 MOSTRAR EN PANTALLA: Asistente de instalación
+
+"Les sale este asistente. Aquí le dan Siguiente, Siguiente, Siguiente y Finalizar. Se instala solo."
+
+🎬 MOSTRAR EN PANTALLA: Icono del widget en el escritorio
+
+"Y listo, ya les aparece el Widget Avalúo en el escritorio o en el menú de inicio. Le doble clic y se abre."
+
+"¿Alguien tiene alguna duda con la instalación?"
+
+========================================
+PASO 3 - INSTALACIÓN EN CELULAR
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Teléfono abierto en Safari/Chrome
+
+💬 DIALOGO:
+
+"Ahora, para los que lo van a usar en el celular, van a abrir Safari si tienen iPhone, o Chrome si tienen Android."
+
+🎬 MOSTRAR EN PANTALLA: Dirección del sistema
+
+"Van a escribir la dirección que les voy a pasar por WhatsApp o que les dio el encargado."
+
+🎬 MOSTRAR EN PANTALLA: Botón de compartir (iPhone)
+
+"Si tienen iPhone, le dan al botón de compartir — es el cuadrito con la flechita hacia arriba — y abajo les dice 'Agregar a pantalla de inicio'. Le dan ahí y le dan 'Agregar'."
+
+🎬 MOSTRAR EN PANTALLA: Tres puntos (Android)
+
+"Si tienen Android, le dan a los tres puntitos de la esquina superior derecha y les dice 'Instalar aplicación'. Le dan ahí."
+
+🎬 MOSTRAR EN PANTALLA: Icono del widget en el celular
+
+"Y les aparece como una app en el celular. Ya no necesitan abrir el navegador, le dan clic y se abre directo."
+
+"¿Alguien tiene iPhone y le salió diferente? ¿Alguien tiene Android?"
+
+========================================
+PASO 4 - INICIO DE SESIÓN
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Pantalla de login del widget
+
+💬 DIALOGO:
+
+"Bien, ahora vamos a entrar. Cuando abren el widget les sale esta pantalla."
+
+🎬 MOSTRAR EN PANTALLA: Campo de correo
+
+"Van a escribir su correo electrónico. El mismo correo que le dieron al encargado cuando se registraron."
+
+🎬 MOSTRAR EN PANTALLA: Pegar código
+
+"Les va a llegar un código a su correo. Lo abren, copian el código y lo pegan aquí."
+
+🎬 MOSTRAR EN PANTALLA: Widget logueado
+
+"Y listo, ya están dentro. El sistema automáticamente los reconoce como perito, digitador o encargado."
+
+⚠️ IMPORTANTE: "Si no les llegó el correo, revisen la carpeta de SPAM o CORREO NO DESEADO. A veces se va para allá."
+
+"¿Alguien no recibió el correo? ¿Les llegó?"
+
+========================================
+PASO 5 - VISTA DEL ENCARGADO
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget logueado como encargado
+
+💬 DIALOGO:
+
+"Ahora les voy a mostrar cómo se ve para el encargado. Yo me voy a loguear como encargado para que vean."
+
+🎬 MOSTRAR EN PANTALLA: Pestañas Avalúos, Digitadores, Peritos
+
+"Arriba les salen tres pestañas: Avalúos, Digitadores y Peritos."
+
+🎬 MOSTRAR EN PANTALLA: Tab Avalúos con sub-tabs
+
+"En Avalúos les salen todos los avalúos. Aquí arriba pueden cambiar entre Abiertos y Con Visita."
+
+🎬 MOSTRAR EN PANTALLA: Lista de avalúos abiertos
+
+"Si le dan en Abiertos, les muestran los que aún no tienen fecha de visita. Cada tarjeta les muestra el número, el estatus, quién lo solicitó, el perito y el digitador."
+
+🎬 MOSTRAR EN PANTALLA: Lista de avalúos con visita
+
+"Si le dan en Con Visita, les muestra los que ya tienen fecha de visita registrada."
+
+========================================
+PASO 6 - ENCARGADO: TAB DIGITADORES
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Tab Digitadores
+
+💬 DIALOGO:
+
+"Si le dan en la pestaña de Digitadores, les aparecen los digitadores con la cantidad de avalúos que tienen asignados."
+
+🎬 MOSTRAR EN PANTALLA: Lista de digitadores
+
+"Si Yetzer tiene 4 avalúos, les sale 'YETZER - 4'. Si Jesús tiene 2, les sale 'JESÚS - 2'. Así pueden ver quién tiene más trabajo."
+
+========================================
+PASO 7 - ENCARGADO: TAB PERITOS
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Tab Peritos
+
+💬 DIALOGO:
+
+"Ahora si le dan en Peritos, les aparece lo mismo pero con los peritos."
+
+🎬 MOSTRAR EN PANTALLA: Lista de peritos
+
+"Aquí les sale Tom, Jorge, Julio Perdomo, Mario Barahona, Miguel Canales, con la cantidad de avalúos de cada uno."
+
+========================================
+PASO 8 - ENCARGADO: CONFIGURACIÓN EXCEL
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget con engranaje ⚙️ visible
+
+💬 DIALOGO:
+
+"Ahora les voy a enseñar algo importante para los encargados: la configuración del Excel."
+
+🎬 MOSTRAR EN PANTALLA: Click en engranaje
+
+"Arriba a la derecha les sale un engranajito ⚙️. Le dan clic."
+
+🎬 MOSTRAR EN PANTALLA: Modal de configuración
+
+"Les sale esta ventana. Aquí van a buscar el archivo del Excel maestro. Le dan en Buscar, van a la carpeta donde tienen el Excel 'Control 2026 VALTECH.xlsx' y lo seleccionan."
+
+🎬 MOSTRAR EN PANTALLA: Ruta seleccionada
+
+"Les aparece la ruta del archivo. Le dan en Guardar."
+
+🎬 MOSTRAR EN PANTALLA: Punto azul 🔵
+
+"Y listo. Si les sale el puntito azul arriba, significa que todo está bien, el widget está sincronizado con el Excel."
+
+"Cada vez que ustedes abren el Excel y le dan Ctrl+S para guardarlo, el widget detecta el cambio y se actualiza automáticamente."
+
+⚠️ "Si les sale puntito ROJO, significa que la ruta está mal o el Excel no está. Vuelvan al engranaje y busquen el archivo de nuevo."
+
+========================================
+PASO 9 - INDICADORES
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Barra superior del widget
+
+💬 DIALOGO:
+
+"Les voy a explicar los indicadores que salen arriba:"
+
+"Puntito VERDE parpadeante = tienen internet, todo bien."
+
+"Puntito AZUL = el widget está sincronizado con el Excel."
+
+"Puntito ROJO = hay un error, el encargado debe revisar la configuración."
+
+"Si les sale un botón AZUL que dice 'Actualizar' o con una flechita, significa que hay una nueva versión. Le dan clic y se actualiza solo."
+
+========================================
+PASO 10 - VISTA PERITO
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget logueado como perito
+
+💬 DIALOGO:
+
+"Ahora les voy a mostrar cómo se ve para los peritos. Yo me voy a salir y entrar como perito."
+
+🎬 MOSTRAR EN PANTALLA: Vista perito con tabs
+
+"Como perito, les salen solo dos tabs: Abiertos y Con Visita."
+
+🎬 MOSTRAR EN PANTALLA: Tarjeta de avalúo (perito)
+
+"Cada tarjeta les muestra: número de avalúo, estatus, quién lo solicitó, la fecha, el tipo."
+
+🎬 MOSTRAR EN PANTALLA: Línea de tiempo
+
+"Y abajo les sale la línea de tiempo. Si dice 'Desde que te solicitaron la visita', significa que ese avalúo te lo asignaron pero aún no has ido."
+
+"Si les sale en verde, están a tiempo. Si les sale en amarillo, ya casi se vence. Si les sale en rojo, ya se venció y hay que darle prioridad."
+
+========================================
+PASO 11 - VISTA DIGITADOR
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget logueado como digitador
+
+💬 DIALOGO:
+
+"Y por último, cómo se ve para los digitadores."
+
+🎬 MOSTRAR EN PANTALLA: Vista digitador con tabs
+
+"También les salen dos tabs: Abiertos y Con Visita."
+
+🎬 MOSTRAR EN PANTALLA: Tarjeta de avalúo (digitador)
+
+"Igual que el perito, ven sus avalúos asignados. La diferencia es que la línea de tiempo dice 'Desde que el perito envió la visita'."
+
+"Esto significa que cuando el perito va al campo y hace la visita, a ustedes les aparece aquí para que lo digitalicen."
+
+========================================
+PASO 12 - PREGUNTAS
+========================================
+
+🎬 MOSTRAR EN PANTALLA: Widget en pantalla general
+
+💬 DIALOGO:
+
+"Bueno, eso es todo lo básico. ¿Tienen alguna pregunta? ¿Alguien no pudo entrar? ¿Alguien no ve sus avalúos?"
+
+"Si no ven sus avalúos, puede ser que el nombre no esté bien escrito en el Excel. Díganme y lo revisamos."
+
+"Si les sale punto rojo, el encargado debe revisar la configuración del Excel con el engranaje."
+
+"El widget se actualiza solo, no necesitan hacer nada. Solo déjenlo abierto y se actualiza."
+
+"¿Alguna otra duda?"
+
+========================================
+FIN
+========================================

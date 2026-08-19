@@ -1,0 +1,189 @@
+MENSAJES WHATSAPP - MANUAL WIDGET AVALÚO
+=========================================
+
+========================================
+MENSAJE 1 - SALUDO
+========================================
+
+Hola! 👋
+
+Te comparto el manual de uso del Widget Avalúo para que tengas toda la info en un solo lugar.
+
+El widget sirve para ver los avalúos inmobiliarios de VALTECH desde tu celular o computadora, en tiempo real.
+
+¿Tienes el widget instalado? Si no, te indico cómo hacerlo 👇
+
+========================================
+MENSAJE 2 - INSTALACIÓN WINDOWS
+========================================
+
+💻 INSTALACIÓN EN COMPUTADORA (Windows):
+
+1️⃣ Abre el navegador y ve a:
+https://github.com/yetzerBDev/valtech-widget/releases/latest
+
+2️⃣ Descarga el archivo que dice "widget-avaluo-setup"
+
+3️⃣ Haz doble clic en el archivo descargado
+⚠️ Si Windows te avisa de seguridad, dale en "Más información" y luego "Ejecutar de todas formas"
+
+4️⃣ Dale Siguiente en todo el instalador
+
+5️⃣ Listo! Busca "Widget Avalúo" en el menú Inicio o en el escritorio
+
+🔄 El widget se actualiza solo, no necesitas volver a descargar nada.
+
+========================================
+MENSAJE 3 - INSTALACIÓN MÓVIL
+========================================
+
+📱 INSTALACIÓN EN CELULAR (PWA):
+
+1️⃣ Abre Safari (iPhone) o Chrome (Android)
+
+2️⃣ Ve a la dirección del sistema que te dio el administrador
+
+3️⃣ 
+📱 iPhone: Dale al botón de compartir ⬆️ y selecciona "Agregar a pantalla de inicio"
+📱 Android: Dale a los tres puntos ⋮ y selecciona "Instalar aplicación"
+
+¡Listo! Ahora el widget aparece como una app en tu teléfono 📲
+
+========================================
+MENSAJE 4 - INICIO DE SESIÓN
+========================================
+
+🔐 INICIO DE SESIÓN:
+
+1️⃣ Abre el widget
+
+2️⃣ Escribe tu correo electrónico (el que te asignó el administrador)
+
+3️⃣ Revisa tu correo 📩 te llegará un código de verificación
+
+4️⃣ Escribe el código en el widget
+
+¡Listo! El sistema detecta tu rol automáticamente (Encargado, Perito o Digitador)
+
+⚠️ Si no ves el correo, revisa la carpeta de SPAM o correo no deseado
+
+========================================
+MENSAJE 5 - ENCARGADO
+========================================
+
+👤 SI ERES ENCARGADO:
+
+Al iniciar sesión verás 3 pestañas:
+
+📋 AVALÚOS - Todos los avalúos activos
+Tiene 2 sub-tabs:
+  • Abiertos → Aún no tienen visita de campo
+  • Con visita → Ya tienen fecha de visita registrada
+
+👷 DIGITADORES - Lista de digitadores con conteo de avalúos asignados
+
+🔍 PERITOS - Lista de peritos con conteo de avalúos asignados
+
+Cada tarjeta muestra:
+• Número de avalúo
+• Estatus
+• Solicitante
+• Fecha de solicitud
+• Tipo y Área
+• Perito y Digitador asignados
+• Línea de tiempo
+
+========================================
+MENSAJE 6 - ENCARGADO CONFIG
+========================================
+
+⚙️ CONFIGURACIÓN DE SINCRONIZACIÓN (Solo Encargado):
+
+El widget se sincroniza con el Excel maestro automáticamente. Para configurarlo:
+
+1️⃣ Dale clic al engranaje ⚙️ arriba a la derecha
+
+2️⃣ Dale en "Buscar" y selecciona tu archivo Excel "Control 2026 VALTECH.xlsx"
+
+3️⃣ Dale en "Guardar"
+
+🔄 Cada vez que guardes el Excel (Ctrl+S), el widget detecta el cambio y actualiza todo automáticamente.
+
+📌 Indicadores:
+🔵 Punto azul = Sincronización OK
+🔴 Punto rojo = Error de ruta, revisa la configuración
+🟢 Punto verde = Conexión a internet activa
+⬇️ Botón azul = Nueva versión disponible
+
+========================================
+MENSAJE 7 - PERITO
+========================================
+
+🔍 SI ERES PERITO:
+
+Tienes 2 tabs:
+
+📋 ABIERTOS → Avalúos que te asignaron, sin visita todavía
+📋 CON VISITA → Avalúos donde ya registraste la visita
+
+Cada tarjeta muestra:
+• Número de avalúo
+• Estatus
+• Solicitante (banco o entidad)
+• Fecha de solicitud
+• Tipo y Área
+• Línea de tiempo: "Desde que te solicitaron la visita"
+
+📌 Colores de tiempo:
+🟢 Verde = Dentro del rango
+🟡 Amarillo = Cerca del límite
+🔴 Rojo = Excedido, requiere atención
+
+========================================
+MENSAJE 8 - DIGITADOR
+========================================
+
+⌨️ SI ERES DIGITADOR:
+
+Tienes 2 tabs:
+
+📋 ABIERTOS → Avalúos que te asignaron, sin visita del perito
+📋 CON VISITA → El perito ya envió la visita, puedes digitalizar
+
+Cada tarjeta muestra:
+• Número de avalúo
+• Estatus
+• Solicitante
+• Fecha de solicitud
+• Tipo y Área
+• Línea de tiempo: "Desde que el perito envió la visita"
+
+========================================
+MENSAJE 9 - SOLUCIÓN PROBLEMAS
+========================================
+
+🛠️ SOLUCIÓN DE PROBLEMAS:
+
+❌ No puedo iniciar sesión
+→ Verifica que el correo es correcto. Revisa spam por el código.
+
+❌ No veo mis avalúos
+→ Contacta al encargado para que verifique tu nombre en el Excel.
+
+❌ Dice "Sin conexión"
+→ Verifica tu internet. Se actualiza solo al reconectarse.
+
+❌ Punto rojo 🔴
+→ Error de sincronización. El encargado debe revisar la ruta del Excel en ⚙️
+
+❌ Las fechas no aparecen
+→ El encargado debe abrir el Excel y guardarlo (Ctrl+S)
+
+❌ No puedo actualizar el widget
+→ El widget se actualiza solo. Si ves un botón "Actualizar" azul, dale clic.
+
+📞 Si el problema persiste, contacta al equipo de desarrollo de VALTECH.
+
+========================================
+FIN DEL MANUAL
+========================================
