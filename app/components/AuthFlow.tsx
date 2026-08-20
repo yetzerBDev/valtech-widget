@@ -144,6 +144,7 @@ export default function AuthFlow() {
   const [esPwa, setEsPwa] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [perfil, setPerfil] = useState<{ nombre: string; cargo: string } | null>(null);
+  const [perfilCargado, setPerfilCargado] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [widgetTab, setWidgetTab] = useState<"abiertos" | "convisita">("abiertos");
@@ -248,7 +249,11 @@ export default function AuthFlow() {
   }, [isWidget]);
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase || !user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAvaluos(null);
+      return;
+    }
     const client = supabase;
     let cancelled = false;
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -258,7 +263,7 @@ export default function AuthFlow() {
         .select(
           "no_avaluo, fecha_banco, recibe, tipo, area_solicitud, estatus, solicitante, perito, digitador, fecha_envio_perito, fecha_envio_visita"
         )
-        .order("recibe", { ascending: true });
+        .order("recibe", { ascending: false, nullsFirst: false });
       if (cancelled) return;
       if (error) {
         if (error.message?.includes("JWT") || error.message?.includes("expired") || error.message?.includes("invalid")) {
@@ -296,7 +301,7 @@ export default function AuthFlow() {
       window.clearInterval(id);
       client.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (!isWidget || !window.electronAPI?.getVersion) return;
@@ -354,7 +359,13 @@ export default function AuthFlow() {
   }, [isWidget]);
 
   useEffect(() => {
-    if (!supabase || !user) return;
+    if (!supabase || !user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPerfil(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPerfilCargado(false);
+      return;
+    }
     const client = supabase;
     let cancelled = false;
 
@@ -366,6 +377,7 @@ export default function AuthFlow() {
         .maybeSingle();
       if (!cancelled) {
         setPerfil(data ?? null);
+        setPerfilCargado(true);
         window.electronAPI?.setNotifyUser?.(
           data?.cargo ? { cargo: data.cargo, nombre: data.nombre ?? "" } : null
         );
@@ -388,9 +400,9 @@ export default function AuthFlow() {
           setUser(null);
           return;
         }
-        return;
       }
-      if (!cancelled) await cargarPerfil();
+      // Siempre cargar perfil, sin importar si el upsert fallo
+      await cargarPerfil();
     })();
 
     const channel = client
@@ -590,17 +602,21 @@ export default function AuthFlow() {
         e === "0"
       );
     };
-    const es2026OMas = (a: Avaluo) => {
+    const ANIO_MINIMO = 2026;
+    const esDelAnioVigente = (a: Avaluo) => {
       const f = a.fecha_banco;
       if (!f) return true;
       const y = Number(f.slice(0, 4));
-      return !Number.isNaN(y) && y >= 2026;
+      if (Number.isNaN(y)) return true;
+      if (y >= ANIO_MINIMO) return true;
+      // tolerancia: 31 de diciembre del anio anterior por desfase de zona horaria
+      return y === ANIO_MINIMO - 1 && f.slice(5) === "12-31";
     };
     const tieneVisita = (a: Avaluo) => {
       const v = a.fecha_envio_visita;
       return v != null && v.trim() !== "";
     };
-    const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus) && es2026OMas(a));
+    const visibles = listado.filter((a) => esSuyo(a) && !esOculto(a.estatus) && esDelAnioVigente(a));
     const abiertos = visibles.filter((a) => !tieneVisita(a));
     const conVisita = visibles.filter(tieneVisita);
 
@@ -635,7 +651,8 @@ export default function AuthFlow() {
       paginaSegura * POR_PAGINA,
       (paginaSegura + 1) * POR_PAGINA
     );
-    const cargando = avaluos === null && !avaluosError;
+    const cargando = (avaluos === null || !perfilCargado) && !avaluosError;
+    const datosIncompletos = listado.length > 0 && listado.filter((a) => !a.estatus).length > listado.length * 0.5;
 
     return (
       <main className={`flex h-[100dvh] flex-col overflow-hidden bg-background px-4 pb-4 text-on-background ${isWidget ? "pt-7" : "pt-5"}`}>
@@ -931,6 +948,11 @@ export default function AuthFlow() {
                 </div>
               ) : (
                 <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
+                  {datosIncompletos && (
+                    <div className="mb-2 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] leading-relaxed text-amber-600">
+                      Los datos llegaron incompletos desde el Excel. Revisa que los vinculos externos esten resueltos.
+                    </div>
+                  )}
                   <ul className="flex flex-col gap-2">
                     {actuales.map((a) => {
                       const horasPerito = horasDesde(a.fecha_envio_perito);
@@ -1293,7 +1315,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.41
+                    Versión actual: v0.1.42
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button

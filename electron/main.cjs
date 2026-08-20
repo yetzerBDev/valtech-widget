@@ -300,6 +300,16 @@ if (!gotTheLock) {
 
     ipcMain.on("notify:set-user", (_event, payload) => {
       notifier?.setUser(payload ?? null);
+      // Defecto 5: arrancar/detener sync segun el cargo del usuario
+      if (payload?.cargo === "encargado") {
+        const cfg = readConfig();
+        if (cfg.excelPath) {
+          startSyncWatcher(cfg.excelPath);
+        }
+      } else if (stopSync) {
+        stopSync();
+        stopSync = null;
+      }
     });
 
     const startSyncWatcher = (excelPath) => {
@@ -363,7 +373,8 @@ if (!gotTheLock) {
 
     createWindow();
 
-    startSyncWatcher(readConfig().excelPath || defaultExcelPath);
+    // Defecto 5: NO arrancar sync automaticamente. Solo arranca cuando
+    // el renderer confirma que el usuario es encargado via notify:set-user.
 
     if (app.isPackaged) {
       const { autoUpdater } = require("electron-updater");
