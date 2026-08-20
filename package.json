@@ -1,6 +1,6 @@
 {
   "name": "widget-avaluo",
-  "version": "0.1.42",
+  "version": "0.1.43",
   "private": true,
   "main": "electron/main.cjs",
   "scripts": {
@@ -43,6 +43,7 @@
     "files": [
       "out/**",
       "electron/**",
+      "lib/**",
       "package.json"
     ],
     "directories": {
