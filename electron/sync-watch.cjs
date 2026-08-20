@@ -4,10 +4,55 @@
 
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
+const { execSync } = require("child_process");
 const XLSX = require("xlsx");
 const { createClient } = require("@supabase/supabase-js");
 
 const POLL_MS = 5000;
+
+/**
+ * Resuelve vínculos externos del Excel usando Excel COM (Windows).
+ * Abre el archivo con Excel, que resuelve los links automáticamente,
+ * guarda una copia temporal limpio, y retorna la ruta del temporal.
+ * Si Excel no está instalado o falla, retorna la ruta original.
+ */
+function resolveExcelLinks(filePath) {
+  const tempPath = path.join(os.tmpdir(), `valtech-resolved-${Date.now()}.xlsx`);
+  const psScript = `
+    $ErrorActionPreference = 'Stop'
+    try {
+      $xl = New-Object -ComObject Excel.Application
+      $xl.Visible = $false
+      $xl.DisplayAlerts = $false
+      $xl.AskToUpdateLinks = $false
+      $xl.AlertBeforeOverwriting = $false
+      $wb = $xl.Workbooks.Open("${filePath.replace(/\\/g, "\\\\")}", 0, $true)
+      $wb.SaveAs("${tempPath.replace(/\\/g, "\\\\")}", 51)
+      $wb.Close($false)
+      $xl.Quit()
+      [System.Runtime.InteropServices.Marshal]::ReleaseComObject($wb) | Out-Null
+      [System.Runtime.InteropServices.Marshal]::ReleaseComObject($xl) | Out-Null
+      [System.GC]::Collect()
+      [System.GC]::WaitForPendingFinalizers()
+      Write-Output "OK"
+    } catch {
+      Write-Output "FAIL:$($_.Exception.Message)"
+    }
+  `;
+  try {
+    const result = execSync(
+      `powershell -NoProfile -NonInteractive -Command "${psScript.replace(/"/g, '\\"').replace(/\n/g, " ")}"`,
+      { timeout: 30000, windowsHide: true, encoding: "utf8" }
+    ).trim();
+    if (result === "OK" && fs.existsSync(tempPath)) {
+      return tempPath;
+    }
+  } catch {
+    // Excel COM no disponible o error, usar archivo original
+  }
+  return filePath;
+}
 
 function normalizeHeader(text) {
   return String(text ?? "")
@@ -65,6 +110,7 @@ const NORM_MAP = {
   encuesta: "encuesta",
   "fecha envio solicitud a perito": "fecha_envio_perito",
   "fecha envio visita de campo": "fecha_envio_visita",
+  "fecha envio a perito en campo": "fecha_envio_perito",
   "fecha que perito envia visita de campo": "fecha_envio_visita",
   "fecha envio perito": "fecha_envio_perito",
   "fecha envio visita": "fecha_envio_visita",
@@ -278,7 +324,15 @@ function parseWorkbook(filePath) {
 }
 
 async function syncOnce(client, filePath) {
-  const records = parseWorkbook(filePath);
+  const resolvedPath = resolveExcelLinks(filePath);
+  let records;
+  try {
+    records = parseWorkbook(resolvedPath);
+  } finally {
+    if (resolvedPath !== filePath) {
+      try { fs.unlinkSync(resolvedPath); } catch {}
+    }
+  }
   const uniq = new Map();
   for (const r of records) {
     if (r.no_avaluo) uniq.set(r.no_avaluo, r);
