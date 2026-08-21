@@ -1315,7 +1315,7 @@ export default function AuthFlow() {
                 <div className="mt-2 flex flex-col gap-4 border-t border-outline-variant/30 pt-6">
                   <DownloadExe />
                   <p className="mt-1 px-2 text-center text-[12px] font-medium text-on-surface-variant">
-                    Versión actual: v0.1.43
+                    Versión actual: v0.1.44
                   </p>
                   {esMovil && !instalada && !esPwa && (
                     <button
